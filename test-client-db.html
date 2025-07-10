@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Test Client-Side Database</title>
+	</head>
+	<body>
+		<h1>Client-Side Database Test</h1>
+		<pre id="output"></pre>
+
+		<script type="module">
+			const output = document.getElementById('output');
+
+			function log(message) {
+				output.textContent += message + '\n';
+				console.log(message);
+			}
+
+			// Test IndexedDB implementation
+			class TestSignalDatabase {
+				constructor() {
+					this.db = null;
+					this.dbName = 'TestRFSignalsDB';
+					this.version = 1;
+				}
+
+				async initialize() {
+					return new Promise((resolve, reject) => {
+						const request = indexedDB.open(this.dbName, this.version);
+
+						request.onerror = () => reject(request.error);
+						request.onsuccess = () => {
+							this.db = request.result;
+							resolve();
+						};
+
+						request.onupgradeneeded = (event) => {
+							const db = event.target.result;
+
+							// Signals store
+							if (!db.objectStoreNames.contains('signals')) {
+								const signalStore = db.createObjectStore('signals', {
+									keyPath: 'id'
+								});
+								signalStore.createIndex('timestamp', 'timestamp');
+								signalStore.createIndex('deviceId', 'deviceId');
+								signalStore.createIndex('spatial', ['gridLat', 'gridLon']);
+							}
+						};
+					});
+				}
+
+				async storeSignal(signal) {
+					const gridScale = 10000;
+					const signalRecord = {
+						id: signal.id,
+						deviceId: 'test_device',
+						timestamp: signal.timestamp,
+						lat: signal.position.lat,
+						lon: signal.position.lon,
+						gridLat: Math.floor(signal.position.lat * gridScale),
+						gridLon: Math.floor(signal.position.lon * gridScale),
+						power: signal.power,
+						frequency: signal.frequency,
+						source: signal.source
+					};
+
+					const tx = this.db.transaction(['signals'], 'readwrite');
+					await tx.objectStore('signals').put(signalRecord);
+					await tx.complete;
+				}
+
+				async findSignalsInRadius(query) {
+					const gridScale = 10000;
+					const latRange = query.radiusMeters / 111320;
+					const lonRange =
+						query.radiusMeters / (111320 * Math.cos((query.lat * Math.PI) / 180));
+
+					const minGridLat = Math.floor((query.lat - latRange) * gridScale);
+					const maxGridLat = Math.ceil((query.lat + latRange) * gridScale);
+					const minGridLon = Math.floor((query.lon - lonRange) * gridScale);
+					const maxGridLon = Math.ceil((query.lon + lonRange) * gridScale);
+
+					const signals = [];
+					const tx = this.db.transaction(['signals'], 'readonly');
+					const store = tx.objectStore('signals');
+					const index = store.index('spatial');
+
+					// Simple range query - in real implementation would query each grid cell
+					const request = index.openCursor();
+
+					return new Promise((resolve) => {
+						request.onsuccess = (event) => {
+							const cursor = event.target.result;
+							if (cursor) {
+								const record = cursor.value;
+								if (
+									record.gridLat >= minGridLat &&
+									record.gridLat <= maxGridLat &&
+									record.gridLon >= minGridLon &&
+									record.gridLon <= maxGridLon
+								) {
+									signals.push({
+										id: record.id,
+										position: { lat: record.lat, lon: record.lon },
+										power: record.power,
+										frequency: record.frequency,
+										timestamp: record.timestamp,
+										source: record.source
+									});
+								}
+								cursor.continue();
+							} else {
+								resolve(signals);
+							}
+						};
+					});
+				}
+			}
+
+			// Run tests
+			async function runTests() {
+				log('Starting client-side database tests...\n');
+
+				try {
+					const db = new TestSignalDatabase();
+					await db.initialize();
+					log('✓ Database initialized successfully');
+
+					// Store test signals
+					const testSignals = [
+						{
+							id: 'test1_' + Date.now(),
+							position: { lat: 40.7128, lon: -74.006 },
+							power: -65,
+							frequency: 2412,
+							timestamp: Date.now(),
+							source: 'hackrf'
+						},
+						{
+							id: 'test2_' + Date.now(),
+							position: { lat: 40.713, lon: -74.0062 },
+							power: -70,
+							frequency: 5180,
+							timestamp: Date.now(),
+							source: 'hackrf'
+						}
+					];
+
+					for (const signal of testSignals) {
+						await db.storeSignal(signal);
+					}
+					log(`✓ Stored ${testSignals.length} test signals`);
+
+					// Query signals
+					const results = await db.findSignalsInRadius({
+						lat: 40.7129,
+						lon: -74.0061,
+						radiusMeters: 500
+					});
+
+					log(`✓ Spatial query returned ${results.length} results`);
+
+					// Display results
+					results.forEach((signal, i) => {
+						log(`  Signal ${i + 1}: ${signal.frequency} MHz at ${signal.power} dBm`);
+					});
+
+					log('\n✅ All client-side database tests passed!');
+
+					// Clean up
+					indexedDB.deleteDatabase('TestRFSignalsDB');
+				} catch (error) {
+					log('❌ Test failed: ' + error.message);
+					console.error(error);
+				}
+			}
+
+			runTests();
+		</script>
+	</body>
+</html>

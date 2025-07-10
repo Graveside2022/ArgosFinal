@@ -1,0 +1,475 @@
+[
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/drone/FlightPathVisualization.svelte",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/drone/MissionControl.svelte",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/hackrf/AnalysisTools.svelte",
+		"messages": [
+			{
+				"ruleId": "@typescript-eslint/require-await",
+				"severity": 2,
+				"message": "Async function 'exportData' has no 'await' expression.",
+				"line": 18,
+				"column": 3,
+				"nodeType": "FunctionDeclaration",
+				"messageId": "missingAwait",
+				"endLine": 18,
+				"endColumn": 28,
+				"suggestions": [
+					{
+						"messageId": "removeAsync",
+						"fix": { "range": [510, 516], "text": "" },
+						"desc": "Remove 'async'."
+					}
+				]
+			}
+		],
+		"suppressedMessages": [],
+		"errorCount": 1,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"source": "<script lang=\"ts\">\n  import { onMount, onDestroy } from 'svelte';\n  import { hackrfService } from '$lib/services/hackrf';\n  import type { SignalDetection } from '$lib/services/api/hackrf';\n  \n  let detectedSignals: SignalDetection[] = [];\n  let signalsUnsubscribe: (() => void) | undefined;\n  let isExporting = false;\n  \n  function launchOpenWebRX() {\n    window.open('http://localhost:8073', '_blank');\n  }\n  \n  function launchSpectrumAnalyzer() {\n    window.open('http://localhost:8092', '_blank');\n  }\n  \n  async function exportData(format: 'csv' | 'json') {\n    isExporting = true;\n    try {\n      void hackrfService.exportData(format);\n    } catch (error) {\n      console.error('Export failed:', error);\n    } finally {\n      isExporting = false;\n    }\n  }\n  \n  onMount(() => {\n    // Subscribe to detected signals\n    signalsUnsubscribe = hackrfService.detectedSignals.subscribe((signals: SignalDetection[]) => {\n      detectedSignals = signals.slice(-5); // Keep last 5 signals\n    });\n  });\n  \n  onDestroy(() => {\n    if (signalsUnsubscribe) signalsUnsubscribe();\n  });\n</script>\n\n<div class=\"saasfly-feature-card group rounded-2xl p-8 bg-gradient-to-br from-bg-card/80 via-bg-card/60 to-bg-card/40 border border-border-primary/40 backdrop-blur-xl shadow-lg hover:shadow-xl hover:border-purple-400/30 hover:bg-gradient-to-br hover:from-bg-card/90 hover:via-bg-card/70 hover:to-bg-card/50 transition-all duration-300\">\n  <div class=\"flex items-center mb-6\">\n    <div class=\"p-3 bg-gradient-to-br from-purple-500/20 to-purple-500/10 rounded-xl mr-4 border border-purple-400/20 group-hover:border-purple-400/40 group-hover:shadow-lg group-hover:shadow-purple-400/20 transition-all duration-300\">\n      <svg class=\"w-6 h-6 text-purple-400 group-hover:scale-110 transition-transform duration-300\" fill=\"currentColor\" viewBox=\"0 0 20 20\">\n        <path fill-rule=\"evenodd\" d=\"M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01.293.707V12a1 1 0 01-.293.707l-2.293 2.293H8a1 1 0 010 2H4a1 1 0 01-1-1v-4a1 1 0 01.293-.707L5.586 9 3.293 6.707A1 1 0 013 6V4zm8-2a1 1 0 011-1h4a1 1 0 011 1v2a1 1 0 01-.293.707L14.414 7l2.293 2.293A1 1 0 0117 10v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293A1 1 0 0111 10V8a1 1 0 01.293-.707L13.586 5H12a1 1 0 010-2z\"/>\n      </svg>\n    </div>\n    <div>\n      <h3 class=\"font-heading text-xl font-semibold external-tools-header mb-1 transition-colors duration-300\">Analysis Tools</h3>\n      <p class=\"text-sm text-text-muted group-hover:text-text-secondary transition-colors duration-300\">External monitoring tools</p>\n    </div>\n  </div>\n  \n  <div class=\"space-y-6\">\n    <!-- External Tools -->\n    <div class=\"space-y-3\">\n      <button on:click={launchOpenWebRX} class=\"saasfly-btn saasfly-btn-outline w-full group\">\n        <svg class=\"w-4 h-4 group-hover:text-neon-cyan transition-colors duration-200\" fill=\"currentColor\" viewBox=\"0 0 20 20\">\n          <path d=\"M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z\"/>\n          <path d=\"M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z\"/>\n        </svg>\n        Open WebRX\n      </button>\n      \n      <button on:click={launchSpectrumAnalyzer} class=\"saasfly-btn saasfly-btn-outline w-full group\">\n        <svg class=\"w-4 h-4 group-hover:text-purple-400 transition-colors duration-200\" fill=\"currentColor\" viewBox=\"0 0 20 20\">\n          <path d=\"M2 10a8 8 0 018-8v8h8a8 8 0 11-16 0z\"/>\n          <path d=\"M12 2.252A8.014 8.014 0 0117.748 8H12V2.252z\"/>\n        </svg>\n        Spectrum Analyzer\n      </button>\n    </div>\n    \n    <!-- Detected Signals -->\n    {#if detectedSignals.length > 0}\n      <div>\n        <h4 class=\"text-sm font-medium text-text-muted mb-3 uppercase tracking-wide\">Recent Signals</h4>\n        <div class=\"space-y-2 max-h-[150px] overflow-y-auto\">\n          {#each detectedSignals as signal}\n            <div class=\"p-3 bg-bg-input/40 rounded-lg border border-border-primary/30 hover:border-purple-400/30 transition-all duration-200\">\n              <div class=\"flex justify-between items-center\">\n                <span class=\"font-mono text-sm\">{(signal.frequency / 1e6).toFixed(2)} MHz</span>\n                <span class=\"text-xs text-text-muted\">{signal.power.toFixed(1)} dBm</span>\n              </div>\n              {#if signal.modulation}\n                <span class=\"text-xs text-purple-400\">{signal.modulation}</span>\n              {/if}\n            </div>\n          {/each}\n        </div>\n      </div>\n    {/if}\n    \n    <!-- Export Options -->\n    <div>\n      <h4 class=\"text-sm font-medium text-text-muted mb-3 uppercase tracking-wide\">Export Data</h4>\n      <div class=\"grid grid-cols-2 gap-2\">\n        <button \n          on:click={() => exportData('json')}\n          disabled={isExporting}\n          class=\"saasfly-btn saasfly-btn-sm saasfly-btn-secondary\"\n          class:opacity-50={isExporting}\n        >\n          <svg class=\"w-3 h-3\" fill=\"currentColor\" viewBox=\"0 0 20 20\">\n            <path fill-rule=\"evenodd\" d=\"M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z\"/>\n          </svg>\n          JSON\n        </button>\n        <button \n          on:click={() => exportData('csv')}\n          disabled={isExporting}\n          class=\"saasfly-btn saasfly-btn-sm saasfly-btn-secondary\"\n          class:opacity-50={isExporting}\n        >\n          <svg class=\"w-3 h-3\" fill=\"currentColor\" viewBox=\"0 0 20 20\">\n            <path fill-rule=\"evenodd\" d=\"M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z\"/>\n          </svg>\n          CSV\n        </button>\n      </div>\n    </div>\n  </div>\n</div>",
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/hackrf/ConnectionStatus.svelte",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/hackrf/FrequencyConfig.svelte",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/hackrf/GeometricBackground.svelte",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/hackrf/HackRFHeader.svelte",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/hackrf/MobileMenu.svelte",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/hackrf/SignalAgeVisualization.svelte",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/hackrf/SpectrumAnalysis.svelte",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/hackrf/SpectrumChart.svelte",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/hackrf/StatusDisplay.svelte",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/hackrf/StatusIndicator.svelte",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/hackrf/SweepControl.svelte",
+		"messages": [
+			{
+				"ruleId": "@typescript-eslint/require-await",
+				"severity": 2,
+				"message": "Async function 'startSweep' has no 'await' expression.",
+				"line": 9,
+				"column": 2,
+				"nodeType": "FunctionDeclaration",
+				"messageId": "missingAwait",
+				"endLine": 9,
+				"endColumn": 27,
+				"suggestions": [
+					{
+						"messageId": "removeAsync",
+						"fix": { "range": [248, 254], "text": "" },
+						"desc": "Remove 'async'."
+					}
+				]
+			},
+			{
+				"ruleId": "@typescript-eslint/require-await",
+				"severity": 2,
+				"message": "Async function 'stopSweep' has no 'await' expression.",
+				"line": 32,
+				"column": 2,
+				"nodeType": "FunctionDeclaration",
+				"messageId": "missingAwait",
+				"endLine": 32,
+				"endColumn": 26,
+				"suggestions": [
+					{
+						"messageId": "removeAsync",
+						"fix": { "range": [789, 795], "text": "" },
+						"desc": "Remove 'async'."
+					}
+				]
+			},
+			{
+				"ruleId": "@typescript-eslint/require-await",
+				"severity": 2,
+				"message": "Async function 'emergencyStop' has no 'await' expression.",
+				"line": 44,
+				"column": 2,
+				"nodeType": "FunctionDeclaration",
+				"messageId": "missingAwait",
+				"endLine": 44,
+				"endColumn": 30,
+				"suggestions": [
+					{
+						"messageId": "removeAsync",
+						"fix": { "range": [1053, 1059], "text": "" },
+						"desc": "Remove 'async'."
+					}
+				]
+			}
+		],
+		"suppressedMessages": [],
+		"errorCount": 3,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"source": "<script lang=\"ts\">\n\timport { sweepStatus, cycleStatus, emergencyStopStatus, frequencyRanges } from '$lib/stores/hackrf';\n\timport { hackrfAPI } from '$lib/services/hackrf/api';\n\t\n\tlet cycleTime = 10;\n\tlet starting = false;\n\tlet stopping = false;\n\t\n\tasync function startSweep() {\n\t\tif ($frequencyRanges.length === 0) {\n\t\t\talert('Please configure at least one frequency range');\n\t\t\treturn;\n\t\t}\n\t\t\n\t\tstarting = true;\n\t\ttry {\n\t\t\tconst frequencies = $frequencyRanges.map(range => ({\n\t\t\t\tstart: range.start,\n\t\t\t\tstop: range.stop,\n\t\t\t\tstep: range.step\n\t\t\t}));\n\t\t\t\n\t\t\tvoid hackrfAPI.startSweep(frequencies, cycleTime);\n\t\t} catch (error) {\n\t\t\tconsole.error('Failed to start sweep:', error);\n\t\t\talert('Failed to start sweep. Check console for details.');\n\t\t} finally {\n\t\t\tstarting = false;\n\t\t}\n\t}\n\t\n\tasync function stopSweep() {\n\t\tstopping = true;\n\t\ttry {\n\t\t\tvoid hackrfAPI.stopSweep();\n\t\t} catch (error) {\n\t\t\tconsole.error('Failed to stop sweep:', error);\n\t\t\talert('Failed to stop sweep. Check console for details.');\n\t\t} finally {\n\t\t\tstopping = false;\n\t\t}\n\t}\n\t\n\tasync function emergencyStop() {\n\t\ttry {\n\t\t\tvoid hackrfAPI.emergencyStop();\n\t\t} catch (error) {\n\t\t\tconsole.error('Emergency stop failed:', error);\n\t\t\talert('Emergency stop failed! Try manual shutdown.');\n\t\t}\n\t}\n\t\n\tfunction _formatTime(seconds: number): string {\n\t\tconst mins = Math.floor(seconds / 60);\n\t\tconst secs = seconds % 60;\n\t\treturn `${mins}:${secs.toString().padStart(2, '0')}`;\n\t}\n</script>\n\n<!-- Sweep Control Panel -->\n<div class=\"glass-panel rounded-xl p-6\">\n\t<h3 class=\"text-h4 font-heading font-semibold text-text-primary mb-6 flex items-center\">\n\t\t<svg class=\"w-5 h-5 mr-2 text-accent-muted\" fill=\"currentColor\" viewBox=\"0 0 20 20\">\n\t\t\t<path fill-rule=\"evenodd\" d=\"M10 18a8 8 0 100-16 8 8 0 0016 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM12 10a1 1 0 100 2 1 1 0 000-2zm7 0a1 1 0 11-2 0 1 1 0 012 0z\" clip-rule=\"evenodd\"/>\n\t\t</svg>\n\t\tSweep Control\n\t</h3>\n\t\n\t<!-- Cycle Time Configuration -->\n\t<div class=\"mb-6\">\n\t\t<label for=\"sweepCycleTime\" class=\"block font-mono text-xs text-text-muted uppercase tracking-wider mb-2\">Cycle Time (seconds)</label>\n\t\t<div class=\"flex items-center space-x-4\">\n\t\t\t<input \n\t\t\t\tid=\"sweepCycleTime\"\n\t\t\t\ttype=\"range\" \n\t\t\t\tbind:value={cycleTime}\n\t\t\t\tmin=\"1\" \n\t\t\t\tmax=\"60\" \n\t\t\t\tclass=\"flex-1 h-2 bg-bg-muted rounded-lg appearance-none cursor-pointer accent-accent-primary\"\n\t\t\t\tdisabled={$sweepStatus.active}\n\t\t\t/>\n\t\t\t<div class=\"w-20 text-center\">\n\t\t\t\t<span class=\"font-mono text-h4 text-accent-primary\">{cycleTime}s</span>\n\t\t\t</div>\n\t\t</div>\n\t\t<div class=\"flex justify-between mt-2\">\n\t\t\t<span class=\"font-mono text-caption text-text-muted\">Fast</span>\n\t\t\t<span class=\"font-mono text-caption text-text-muted\">Slow</span>\n\t\t</div>\n\t</div>\n\t\n\t<!-- Status Information -->\n\t<div class=\"grid grid-cols-2 gap-4 mb-6\">\n\t\t<div class=\"glass-panel-light rounded-lg p-4\">\n\t\t\t<span class=\"font-mono text-xs text-text-muted uppercase tracking-wider\">Status</span>\n\t\t\t<p class=\"font-mono text-body {$sweepStatus.active ? 'text-neon-green' : 'text-text-secondary'} mt-1\">\n\t\t\t\t{$sweepStatus.active ? 'Sweeping' : 'Idle'}\n\t\t\t</p>\n\t\t</div>\n\t\t<div class=\"glass-panel-light rounded-lg p-4\">\n\t\t\t<span class=\"font-mono text-xs text-text-muted uppercase tracking-wider\">Progress</span>\n\t\t\t<p class=\"font-mono text-body text-text-primary mt-1\">\n\t\t\t\t{#if $cycleStatus.currentCycle && $cycleStatus.totalCycles}\n\t\t\t\t\t{$cycleStatus.currentCycle} / {$cycleStatus.totalCycles}\n\t\t\t\t{:else}\n\t\t\t\t\t--\n\t\t\t\t{/if}\n\t\t\t</p>\n\t\t</div>\n\t</div>\n\t\n\t<!-- Control Buttons -->\n\t<div class=\"flex space-x-4\">\n\t\t{#if !$sweepStatus.active}\n\t\t\t<button \n\t\t\t\ton:click={startSweep}\n\t\t\t\tdisabled={starting || $frequencyRanges.length === 0}\n\t\t\t\tclass=\"flex-1 saasfly-button-primary disabled:opacity-50 disabled:cursor-not-allowed\"\n\t\t\t>\n\t\t\t\t{#if starting}\n\t\t\t\t\t<svg class=\"w-5 h-5 mr-2 animate-spin\" fill=\"currentColor\" viewBox=\"0 0 20 20\">\n\t\t\t\t\t\t<path fill-rule=\"evenodd\" d=\"M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z\" clip-rule=\"evenodd\"/>\n\t\t\t\t\t</svg>\n\t\t\t\t\tStarting...\n\t\t\t\t{:else}\n\t\t\t\t\t<svg class=\"w-5 h-5 mr-2\" fill=\"currentColor\" viewBox=\"0 0 20 20\">\n\t\t\t\t\t\t<path fill-rule=\"evenodd\" d=\"M10 18a8 8 0 100-16 8 8 0 0016 0zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z\" clip-rule=\"evenodd\"/>\n\t\t\t\t\t</svg>\n\t\t\t\t\tStart Sweep\n\t\t\t\t{/if}\n\t\t\t</button>\n\t\t{:else}\n\t\t\t<button \n\t\t\t\ton:click={stopSweep}\n\t\t\t\tdisabled={stopping}\n\t\t\t\tclass=\"flex-1 glass-button rounded-lg hover:bg-bg-muted/40 disabled:opacity-50 disabled:cursor-not-allowed\"\n\t\t\t>\n\t\t\t\t{#if stopping}\n\t\t\t\t\t<svg class=\"w-5 h-5 mr-2 animate-spin\" fill=\"currentColor\" viewBox=\"0 0 20 20\">\n\t\t\t\t\t\t<path fill-rule=\"evenodd\" d=\"M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z\" clip-rule=\"evenodd\"/>\n\t\t\t\t\t</svg>\n\t\t\t\t\tStopping...\n\t\t\t\t{:else}\n\t\t\t\t\t<div class=\"flex items-center justify-center\">\n\t\t\t\t\t\t<svg class=\"w-5 h-5 mr-2\" fill=\"currentColor\" viewBox=\"0 0 20 20\">\n\t\t\t\t\t\t\t<path fill-rule=\"evenodd\" d=\"M10 18a8 8 0 100-16 8 8 0 0016 0zM8 7a1 1 0 00-1 1v4a1 1 0 001 1h4a1 1 0 001-1V8a1 1 0 00-1-1H8z\" clip-rule=\"evenodd\"/>\n\t\t\t\t\t\t</svg>\n\t\t\t\t\t\tStop Sweep\n\t\t\t\t\t</div>\n\t\t\t\t{/if}\n\t\t\t</button>\n\t\t\t<button \n\t\t\t\ton:click={emergencyStop}\n\t\t\t\tclass=\"px-6 py-3 bg-red-500/20 text-red-400 border border-red-500/40 rounded-lg hover:bg-red-500/30 hover:shadow-red-glow transition-all duration-200 font-semibold\"\n\t\t\t>\n\t\t\t\t<svg class=\"w-5 h-5\" fill=\"currentColor\" viewBox=\"0 0 20 20\">\n\t\t\t\t\t<path fill-rule=\"evenodd\" d=\"M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a1 1 0 00-1 1v3a1 1 0 102 0v-3a1 1 0 00-1-1z\" clip-rule=\"evenodd\"/>\n\t\t\t\t</svg>\n\t\t\t</button>\n\t\t{/if}\n\t</div>\n\t\n\t<!-- Emergency Stop Warning -->\n\t{#if $emergencyStopStatus.active}\n\t\t<div class=\"mt-4 p-4 bg-red-500/20 border border-red-500/40 rounded-lg animate-pulse\">\n\t\t\t<p class=\"font-mono text-caption text-red-400 flex items-center\">\n\t\t\t\t<svg class=\"w-5 h-5 mr-2\" fill=\"currentColor\" viewBox=\"0 0 20 20\">\n\t\t\t\t\t<path fill-rule=\"evenodd\" d=\"M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z\" clip-rule=\"evenodd\"/>\n\t\t\t\t</svg>\n\t\t\t\tEmergency stop activated. Restart the application to continue.\n\t\t\t</p>\n\t\t</div>\n\t{/if}\n</div>",
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/hackrf/TimeFilterDemo.svelte",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/hackrf/TimeWindowControl.svelte",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/hackrf/TimedSignalDisplay.svelte",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/kismet/AlertsPanel.svelte",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/kismet/DeviceList.svelte",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/kismet/MapView.svelte",
+		"messages": [],
+		"suppressedMessages": [
+			{
+				"ruleId": "no-console",
+				"severity": 1,
+				"message": "Unexpected console statement. Only these console methods are allowed: warn, error.",
+				"line": 41,
+				"column": 3,
+				"nodeType": "MemberExpression",
+				"messageId": "limited",
+				"endLine": 41,
+				"endColumn": 14,
+				"suggestions": [
+					{
+						"fix": { "range": [950, 1005], "text": "" },
+						"messageId": "removeConsole",
+						"data": { "propertyName": "log" },
+						"desc": "Remove the console.log()."
+					}
+				],
+				"suppressions": [{ "kind": "directive", "justification": "" }]
+			}
+		],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/kismet/ServiceControl.svelte",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/kismet/StatisticsPanel.svelte",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/map/MapControls.svelte",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/map/SignalDetailPanel.svelte",
+		"messages": [
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 47,
+				"column": 49,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 47,
+				"endColumn": 77
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .lat on an `error` typed value.",
+				"line": 47,
+				"column": 66,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 47,
+				"endColumn": 69
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 47,
+				"column": 85,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 47,
+				"endColumn": 113
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .lon on an `error` typed value.",
+				"line": 47,
+				"column": 102,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 47,
+				"endColumn": 105
+			}
+		],
+		"suppressedMessages": [],
+		"errorCount": 4,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"source": "<script lang=\"ts\">\n  import { createEventDispatcher } from 'svelte';\n  import type { SignalMarker } from '$lib/stores/map/signals';\n  import type { SignalCluster } from '$lib/services/map/signalClustering';\n  import SignalTypeIndicator from './SignalTypeIndicator.svelte';\n  import SignalStrengthMeter from './SignalStrengthMeter.svelte';\n  \n  export let cluster: SignalCluster | null = null;\n  export let isOpen = false;\n  \n  const dispatch = createEventDispatcher();\n  \n  function close() {\n    dispatch('close');\n  }\n  \n  function selectSignal(signal: SignalMarker) {\n    dispatch('selectSignal', signal);\n  }\n  \n  // Sort signals by power (strongest first)\n  $: sortedSignals = cluster ? [...cluster.signals].sort((a, b) => b.power - a.power) : [];\n  \n  // Group signals by type\n  $: signalsByType = sortedSignals.reduce((acc: Record<string, SignalMarker[]>, signal) => {\n    const type = signal.metadata.signalType || 'unknown';\n    if (!acc[type]) acc[type] = [];\n    acc[type].push(signal);\n    return acc;\n  }, {} as Record<string, SignalMarker[]>);\n</script>\n\n{#if isOpen && cluster}\n  <div class=\"fixed inset-0 bg-black/50 z-[2000] flex items-center justify-center p-4\"\n       on:click={close}\n       on:keydown={(e) => e.key === 'Escape' && close()}\n       role=\"button\"\n       tabindex=\"0\">\n    <div class=\"bg-gray-900 rounded-lg shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden\"\n         on:click|stopPropagation>\n      <!-- Header -->\n      <div class=\"bg-gray-800 px-6 py-4 border-b border-gray-700\">\n        <div class=\"flex items-center justify-between\">\n          <div>\n            <h2 class=\"text-xl font-bold text-white\">Cluster Details</h2>\n            <p class=\"text-sm text-gray-400 mt-1\">\n              {cluster.stats.count} signals at {cluster.position.lat.toFixed(6)}°, {cluster.position.lon.toFixed(6)}°\n            </p>\n          </div>\n          <button\n            on:click={close}\n            class=\"text-gray-400 hover:text-white transition-colors p-2\"\n            aria-label=\"Close\">\n            <svg class=\"w-6 h-6\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\">\n              <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M6 18L18 6M6 6l12 12\" />\n            </svg>\n          </button>\n        </div>\n      </div>\n      \n      <!-- Content -->\n      <div class=\"overflow-y-auto max-h-[calc(80vh-100px)] p-6\">\n        <!-- Summary Stats -->\n        <div class=\"grid grid-cols-1 md:grid-cols-3 gap-4 mb-6\">\n          <div class=\"bg-gray-800 rounded-lg p-4\">\n            <div class=\"text-xs text-gray-400 mb-1\">Average Power</div>\n            <SignalStrengthMeter power={cluster.stats.avgPower} compact={false} />\n          </div>\n          <div class=\"bg-gray-800 rounded-lg p-4\">\n            <div class=\"text-xs text-gray-400 mb-1\">Power Range</div>\n            <div class=\"text-white\">\n              {cluster.stats.minPower.toFixed(0)} to {cluster.stats.maxPower.toFixed(0)} dBm\n            </div>\n          </div>\n          <div class=\"bg-gray-800 rounded-lg p-4\">\n            <div class=\"text-xs text-gray-400 mb-1\">Time Span</div>\n            <div class=\"text-white\">\n              {new Date(cluster.stats.timeRange.start).toLocaleTimeString()} - \n              {new Date(cluster.stats.timeRange.end).toLocaleTimeString()}\n            </div>\n          </div>\n        </div>\n        \n        <!-- Signals by Type -->\n        <div class=\"space-y-4\">\n          {#each Object.entries(signalsByType) as [type, signals]}\n            <div class=\"bg-gray-800 rounded-lg p-4\">\n              <div class=\"flex items-center gap-2 mb-3\">\n                <SignalTypeIndicator signalType={type} size=\"medium\" />\n                <h3 class=\"text-lg font-semibold text-white capitalize\">{type}</h3>\n                <span class=\"text-sm text-gray-400\">({signals.length} signals)</span>\n              </div>\n              \n              <div class=\"grid grid-cols-1 md:grid-cols-2 gap-3\">\n                {#each signals as signal}\n                  <button\n                    on:click={() => selectSignal(signal)}\n                    class=\"bg-gray-700 hover:bg-gray-600 rounded-lg p-3 text-left transition-colors\">\n                    <div class=\"flex items-center justify-between mb-2\">\n                      <div class=\"text-sm text-white\">\n                        {(signal.frequency / 1000).toFixed(2)} GHz\n                      </div>\n                      <SignalStrengthMeter power={signal.power} compact={true} showLabel={false} />\n                    </div>\n                    <div class=\"text-xs text-gray-400\">\n                      {new Date(signal.timestamp).toLocaleTimeString()}\n                    </div>\n                  </button>\n                {/each}\n              </div>\n            </div>\n          {/each}\n        </div>\n      </div>\n      \n      <!-- Footer -->\n      <div class=\"bg-gray-800 px-6 py-3 border-t border-gray-700\">\n        <div class=\"flex justify-end gap-3\">\n          <button\n            on:click={close}\n            class=\"px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors\">\n            Close\n          </button>\n        </div>\n      </div>\n    </div>\n  </div>\n{/if}\n\n<style>\n  /* Ensure the panel is above map controls */\n  :global(.leaflet-control) {\n    z-index: 1000 !important;\n  }\n</style>",
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/map/SignalInfoCard.svelte",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/map/SignalList.svelte",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/map/SignalStrengthMeter.svelte",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/map/SignalTypeIndicator.svelte",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/src/lib/components/map/TimeFilterControls.svelte",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	}
+]

@@ -1,404 +1,408 @@
 import { BaseWebSocket, type BaseWebSocketConfig } from './base';
-import { 
-    updateSpectrumData,
-    updateSweepStatus,
-    updateConnectionStatus,
-    updateCycleStatus,
-    updateEmergencyStopStatus,
-    type SpectrumData,
-    type SweepStatus,
-    type CycleStatus
+import {
+	updateSpectrumData,
+	updateSweepStatus,
+	updateConnectionStatus,
+	updateCycleStatus,
+	updateEmergencyStopStatus,
+	type SpectrumData,
+	type SweepStatus,
+	type CycleStatus,
+	type DeviceInfo
 } from '$lib/stores/hackrf';
+import { isObject, hasProperty } from '$lib/types/validation';
 
 export interface HackRFWebSocketConfig extends BaseWebSocketConfig {
-    bufferSize?: number;
-    enableCompression?: boolean;
+	bufferSize?: number;
+	enableCompression?: boolean;
 }
 
 export interface HackRFMessage {
-    type: string;
-    data?: unknown;
-    timestamp?: number;
-    sequence?: number;
+	type: string;
+	data?: unknown;
+	timestamp?: number;
+	sequence?: number;
 }
 
 // Type guards for validating unknown data
 function isSpectrumData(data: unknown): data is SpectrumData {
-    return (
-        typeof data === 'object' &&
-        data !== null &&
-        'frequencies' in data &&
-        'power' in data &&
-        Array.isArray((data as any).frequencies) &&
-        Array.isArray((data as any).power)
-    );
+	if (!isObject(data)) return false;
+
+	return (
+		hasProperty(data, 'frequencies') &&
+		hasProperty(data, 'power') &&
+		Array.isArray(data.frequencies) &&
+		Array.isArray(data.power)
+	);
 }
 
 function isSweepStatus(data: unknown): data is Partial<SweepStatus> {
-    return (
-        typeof data === 'object' &&
-        data !== null &&
-        // All properties are optional in Partial<SweepStatus>
-        (!('active' in data) || typeof (data as any).active === 'boolean') &&
-        (!('startFreq' in data) || typeof (data as any).startFreq === 'number') &&
-        (!('endFreq' in data) || typeof (data as any).endFreq === 'number') &&
-        (!('binSize' in data) || typeof (data as any).binSize === 'number') &&
-        (!('progress' in data) || typeof (data as any).progress === 'number')
-    );
+	if (!isObject(data)) return false;
+
+	// All properties are optional in Partial<SweepStatus>
+	return (
+		(!hasProperty(data, 'active') || typeof data.active === 'boolean') &&
+		(!hasProperty(data, 'startFreq') || typeof data.startFreq === 'number') &&
+		(!hasProperty(data, 'endFreq') || typeof data.endFreq === 'number') &&
+		(!hasProperty(data, 'binSize') || typeof data.binSize === 'number') &&
+		(!hasProperty(data, 'progress') || typeof data.progress === 'number')
+	);
 }
 
 function isCycleStatus(data: unknown): data is Partial<CycleStatus> {
-    return (
-        typeof data === 'object' &&
-        data !== null &&
-        // Validate the expected properties of CycleStatus
-        (!('cycleNumber' in data) || typeof (data as any).cycleNumber === 'number') &&
-        (!('startTime' in data) || typeof (data as any).startTime === 'number') &&
-        (!('endTime' in data) || typeof (data as any).endTime === 'number')
-    );
+	if (!isObject(data)) return false;
+
+	// Validate the expected properties of CycleStatus
+	return (
+		(!hasProperty(data, 'cycleNumber') || typeof data.cycleNumber === 'number') &&
+		(!hasProperty(data, 'startTime') || typeof data.startTime === 'number') &&
+		(!hasProperty(data, 'endTime') || typeof data.endTime === 'number')
+	);
 }
 
 function isEmergencyStopData(data: unknown): data is { active: boolean; reason?: string } {
-    return (
-        typeof data === 'object' &&
-        data !== null &&
-        'active' in data &&
-        typeof (data as any).active === 'boolean' &&
-        (!('reason' in data) || typeof (data as any).reason === 'string')
-    );
+	if (!isObject(data)) return false;
+
+	return (
+		hasProperty(data, 'active') &&
+		typeof data.active === 'boolean' &&
+		(!hasProperty(data, 'reason') || typeof data.reason === 'string')
+	);
 }
 
 function isDeviceStatus(data: unknown): data is { connected?: boolean; info?: unknown } {
-    return (
-        typeof data === 'object' &&
-        data !== null &&
-        (!('connected' in data) || typeof (data as any).connected === 'boolean')
-    );
+	if (!isObject(data)) return false;
+
+	return !hasProperty(data, 'connected') || typeof data.connected === 'boolean';
 }
 
 export class HackRFWebSocketClient extends BaseWebSocket {
-    private messageBuffer: SpectrumData[] = [];
-    private bufferSize: number;
-    private enableCompression: boolean;
-    private lastSequence = 0;
+	private messageBuffer: SpectrumData[] = [];
+	private bufferSize: number;
+	private enableCompression: boolean;
+	private lastSequence = 0;
 
-    constructor(config: Partial<HackRFWebSocketConfig> = {}) {
-        const finalConfig: HackRFWebSocketConfig = {
-            url: 'ws://localhost:5173/ws/hackrf',
-            heartbeatInterval: 10000, // More frequent for real-time data
-            ...config
-        };
-        super(finalConfig);
-        
-        this.bufferSize = config.bufferSize || 10;
-        this.enableCompression = config.enableCompression ?? true;
-        
-        // Setup message handlers
-        this.setupMessageHandlers();
-    }
+	constructor(config: Partial<HackRFWebSocketConfig> = {}) {
+		const finalConfig: HackRFWebSocketConfig = {
+			url: 'ws://localhost:5173/ws/hackrf',
+			heartbeatInterval: 10000, // More frequent for real-time data
+			...config
+		};
+		super(finalConfig);
 
-    private setupMessageHandlers(): void {
-        // Spectrum data updates
-        this.onMessage('spectrum_data', (data) => {
-            if (isSpectrumData(data)) {
-                this.handleSpectrumData(data);
-            } else {
-                console.error('[HackRF] Invalid spectrum data received:', data);
-            }
-        });
+		this.bufferSize = config.bufferSize || 10;
+		this.enableCompression = config.enableCompression ?? true;
 
-        // Sweep status updates
-        this.onMessage('sweep_status', (data) => {
-            if (isSweepStatus(data)) {
-                this.handleSweepStatus(data);
-            } else {
-                console.error('[HackRF] Invalid sweep status received:', data);
-            }
-        });
+		// Setup message handlers
+		this.setupMessageHandlers();
+	}
 
-        // Cycle status updates
-        this.onMessage('cycle_status', (data) => {
-            if (isCycleStatus(data)) {
-                this.handleCycleStatus(data);
-            } else {
-                console.error('[HackRF] Invalid cycle status received:', data);
-            }
-        });
+	private setupMessageHandlers(): void {
+		// Spectrum data updates
+		this.onMessage('spectrum_data', (data) => {
+			if (isSpectrumData(data)) {
+				this.handleSpectrumData(data);
+			} else {
+				console.error('[HackRF] Invalid spectrum data received:', data);
+			}
+		});
 
-        // Emergency stop updates
-        this.onMessage('emergency_stop', (data) => {
-            if (isEmergencyStopData(data)) {
-                this.handleEmergencyStop(data);
-            } else {
-                console.error('[HackRF] Invalid emergency stop data received:', data);
-            }
-        });
+		// Sweep status updates
+		this.onMessage('sweep_status', (data) => {
+			if (isSweepStatus(data)) {
+				this.handleSweepStatus(data);
+			} else {
+				console.error('[HackRF] Invalid sweep status received:', data);
+			}
+		});
 
-        // Device status updates
-        this.onMessage('device_status', (data) => {
-            if (isDeviceStatus(data)) {
-                this.handleDeviceStatus(data);
-            } else {
-                console.error('[HackRF] Invalid device status received:', data);
-            }
-        });
+		// Cycle status updates
+		this.onMessage('cycle_status', (data) => {
+			if (isCycleStatus(data)) {
+				this.handleCycleStatus(data);
+			} else {
+				console.error('[HackRF] Invalid cycle status received:', data);
+			}
+		});
 
-        // Error messages
-        this.onMessage('error', (data) => {
-            this.handleError(data);
-        });
+		// Emergency stop updates
+		this.onMessage('emergency_stop', (data) => {
+			if (isEmergencyStopData(data)) {
+				this.handleEmergencyStop(data);
+			} else {
+				console.error('[HackRF] Invalid emergency stop data received:', data);
+			}
+		});
 
-        // Heartbeat response
-        this.onMessage('pong', () => {
-            this.lastHeartbeat = Date.now();
-        });
-    }
+		// Device status updates
+		this.onMessage('device_status', (data) => {
+			if (isDeviceStatus(data)) {
+				this.handleDeviceStatus(data);
+			} else {
+				console.error('[HackRF] Invalid device status received:', data);
+			}
+		});
 
-    protected onConnected(): void {
-        // console.info('[HackRF] WebSocket connected');
-        
-        updateConnectionStatus({
-            connected: true,
-            connecting: false,
-            error: null,
-            lastConnected: Date.now()
-        });
+		// Error messages
+		this.onMessage('error', (data) => {
+			this.handleError(data);
+		});
 
-        // Request initial status
-        this.requestStatus();
-        this.requestSweepStatus();
-        
-        // Subscribe to real-time updates
-        this.subscribe(['spectrum', 'status', 'alerts']);
-    }
+		// Heartbeat response
+		this.onMessage('pong', () => {
+			this.lastHeartbeat = Date.now();
+		});
+	}
 
-    protected onDisconnected(): void {
-        // console.info('[HackRF] WebSocket disconnected');
-        
-        updateConnectionStatus({
-            connected: false,
-            connecting: false
-        });
+	protected onConnected(): void {
+		// console.info('[HackRF] WebSocket connected');
 
-        // Clear real-time data
-        this.messageBuffer = [];
-        updateSpectrumData(null);
-    }
+		updateConnectionStatus({
+			connected: true,
+			connecting: false,
+			error: null,
+			lastConnected: Date.now()
+		});
 
-    protected handleIncomingMessage(data: unknown): void {
-        // Base message handling is done through message handlers
-        // This is for any additional processing needed
-        const typedData = data as { sequence?: number };
-        if (typedData.sequence !== undefined) {
-            // Check for missed messages
-            if (typedData.sequence > this.lastSequence + 1) {
-                console.warn(`[HackRF] Missed ${typedData.sequence - this.lastSequence - 1} messages`);
-            }
-            this.lastSequence = typedData.sequence;
-        }
-    }
+		// Request initial status
+		this.requestStatus();
+		this.requestSweepStatus();
 
-    protected onError(error: Error): void {
-        console.error('[HackRF] WebSocket error:', error);
-        
-        updateConnectionStatus({
-            error: error.message,
-            lastError: error.message
-        });
-    }
+		// Subscribe to real-time updates
+		this.subscribe(['spectrum', 'status', 'alerts']);
+	}
 
-    protected sendHeartbeat(): void {
-        this.send({ type: 'ping', timestamp: Date.now() });
-    }
+	protected onDisconnected(): void {
+		// console.info('[HackRF] WebSocket disconnected');
 
-    private handleSpectrumData(data: SpectrumData): void {
-        // Add to buffer for smoothing
-        this.messageBuffer.push(data);
-        if (this.messageBuffer.length > this.bufferSize) {
-            this.messageBuffer.shift();
-        }
+		updateConnectionStatus({
+			connected: false,
+			connecting: false
+		});
 
-        // Process and update store
-        const processedData = this.processSpectrumData(data);
-        updateSpectrumData(processedData);
-    }
+		// Clear real-time data
+		this.messageBuffer = [];
+		updateSpectrumData(null);
+	}
 
-    private processSpectrumData(data: SpectrumData): SpectrumData {
-        // Apply any necessary processing (e.g., averaging, smoothing)
-        if (this.messageBuffer.length > 1) {
-            // Simple moving average for power values
-            const avgPower = data.power.map((value, index) => {
-                const sum = this.messageBuffer.reduce((acc, buf) => 
-                    acc + (buf.power[index] || 0), 0
-                );
-                return sum / this.messageBuffer.length;
-            });
+	protected handleIncomingMessage(data: unknown): void {
+		// Base message handling is done through message handlers
+		// This is for any additional processing needed
+		const typedData = data as { sequence?: number };
+		if (typedData.sequence !== undefined) {
+			// Check for missed messages
+			if (typedData.sequence > this.lastSequence + 1) {
+				console.warn(
+					`[HackRF] Missed ${typedData.sequence - this.lastSequence - 1} messages`
+				);
+			}
+			this.lastSequence = typedData.sequence;
+		}
+	}
 
-            return {
-                ...data,
-                power: avgPower,
-                processed: true
-            };
-        }
+	protected onError(error: Error): void {
+		console.error('[HackRF] WebSocket error:', error);
 
-        return data;
-    }
+		updateConnectionStatus({
+			error: error.message,
+			lastError: error.message
+		});
+	}
 
-    private handleSweepStatus(status: Partial<SweepStatus>): void {
-        updateSweepStatus(status);
-    }
+	protected sendHeartbeat(): void {
+		this.send({ type: 'ping', timestamp: Date.now() });
+	}
 
-    private handleCycleStatus(status: Partial<CycleStatus>): void {
-        updateCycleStatus(status);
-    }
+	private handleSpectrumData(data: SpectrumData): void {
+		// Add to buffer for smoothing
+		this.messageBuffer.push(data);
+		if (this.messageBuffer.length > this.bufferSize) {
+			this.messageBuffer.shift();
+		}
 
-    private handleEmergencyStop(data: { active: boolean; reason?: string }): void {
-        updateEmergencyStopStatus({
-            active: data.active,
-            reason: data.reason,
-            timestamp: Date.now()
-        });
-    }
+		// Process and update store
+		const processedData = this.processSpectrumData(data);
+		updateSpectrumData(processedData);
+	}
 
-    private handleDeviceStatus(status: { connected?: boolean; info?: unknown }): void {
-        updateConnectionStatus({
-            deviceConnected: status.connected,
-            deviceInfo: status.info
-        });
-    }
+	private processSpectrumData(data: SpectrumData): SpectrumData {
+		// Apply any necessary processing (e.g., averaging, smoothing)
+		if (this.messageBuffer.length > 1) {
+			// Simple moving average for power values
+			const avgPower = data.power.map((value, index) => {
+				const sum = this.messageBuffer.reduce(
+					(acc, buf) => acc + (buf.power[index] || 0),
+					0
+				);
+				return sum / this.messageBuffer.length;
+			});
 
-    private handleError(error: unknown): void {
-        console.error('[HackRF] Server error:', error);
-        
-        const errorMessage = error && typeof error === 'object' && 'message' in error 
-            ? (error as { message: string }).message 
-            : 'Unknown error';
-            
-        updateConnectionStatus({
-            error: errorMessage,
-            lastError: errorMessage
-        });
-    }
+			return {
+				...data,
+				power: avgPower,
+				processed: true
+			};
+		}
 
-    // Public API methods
+		return data;
+	}
 
-    /**
-     * Start a frequency sweep
-     */
-    startSweep(config?: {
-        startFreq?: number;
-        endFreq?: number;
-        binSize?: number;
-        gain?: number;
-        sampleRate?: number;
-    }): void {
-        this.send({
-            type: 'start_sweep',
-            config
-        });
-    }
+	private handleSweepStatus(status: Partial<SweepStatus>): void {
+		updateSweepStatus(status);
+	}
 
-    /**
-     * Stop the current sweep
-     */
-    stopSweep(): void {
-        this.send({ type: 'stop_sweep' });
-    }
+	private handleCycleStatus(status: Partial<CycleStatus>): void {
+		updateCycleStatus(status);
+	}
 
-    /**
-     * Trigger emergency stop
-     */
-    emergencyStop(reason?: string): void {
-        this.send({
-            type: 'emergency_stop',
-            reason
-        });
-    }
+	private handleEmergencyStop(data: { active: boolean; reason?: string }): void {
+		updateEmergencyStopStatus({
+			active: data.active,
+			reason: data.reason,
+			timestamp: Date.now()
+		});
+	}
 
-    /**
-     * Request current status
-     */
-    requestStatus(): void {
-        this.send({ type: 'request_status' });
-    }
+	private handleDeviceStatus(status: { connected?: boolean; info?: unknown }): void {
+		updateConnectionStatus({
+			deviceConnected: status.connected,
+			deviceInfo: status.info as DeviceInfo | undefined
+		});
+	}
 
-    /**
-     * Request sweep status
-     */
-    requestSweepStatus(): void {
-        this.send({ type: 'request_sweep_status' });
-    }
+	private handleError(error: unknown): void {
+		console.error('[HackRF] Server error:', error);
 
-    /**
-     * Subscribe to specific data streams
-     */
-    subscribe(streams: string[]): void {
-        this.send({
-            type: 'subscribe',
-            streams
-        });
-    }
+		const errorMessage =
+			error && typeof error === 'object' && 'message' in error
+				? (error as { message: string }).message
+				: 'Unknown error';
 
-    /**
-     * Unsubscribe from data streams
-     */
-    unsubscribe(streams: string[]): void {
-        this.send({
-            type: 'unsubscribe',
-            streams
-        });
-    }
+		updateConnectionStatus({
+			error: errorMessage,
+			lastError: errorMessage
+		});
+	}
 
-    /**
-     * Set data compression
-     */
-    setCompression(enabled: boolean): void {
-        this.enableCompression = enabled;
-        this.send({
-            type: 'set_compression',
-            enabled
-        });
-    }
+	// Public API methods
 
-    /**
-     * Set buffer size
-     */
-    setBufferSize(size: number): void {
-        this.bufferSize = Math.max(1, Math.min(100, size));
-        // Trim buffer if needed
-        while (this.messageBuffer.length > this.bufferSize) {
-            this.messageBuffer.shift();
-        }
-    }
+	/**
+	 * Start a frequency sweep
+	 */
+	startSweep(config?: {
+		startFreq?: number;
+		endFreq?: number;
+		binSize?: number;
+		gain?: number;
+		sampleRate?: number;
+	}): void {
+		this.send({
+			type: 'start_sweep',
+			config
+		});
+	}
 
-    /**
-     * Get current buffer size
-     */
-    getBufferSize(): number {
-        return this.bufferSize;
-    }
+	/**
+	 * Stop the current sweep
+	 */
+	stopSweep(): void {
+		this.send({ type: 'stop_sweep' });
+	}
 
-    /**
-     * Clear the message buffer
-     */
-    clearBuffer(): void {
-        this.messageBuffer = [];
-    }
+	/**
+	 * Trigger emergency stop
+	 */
+	emergencyStop(reason?: string): void {
+		this.send({
+			type: 'emergency_stop',
+			reason
+		});
+	}
+
+	/**
+	 * Request current status
+	 */
+	requestStatus(): void {
+		this.send({ type: 'request_status' });
+	}
+
+	/**
+	 * Request sweep status
+	 */
+	requestSweepStatus(): void {
+		this.send({ type: 'request_sweep_status' });
+	}
+
+	/**
+	 * Subscribe to specific data streams
+	 */
+	subscribe(streams: string[]): void {
+		this.send({
+			type: 'subscribe',
+			streams
+		});
+	}
+
+	/**
+	 * Unsubscribe from data streams
+	 */
+	unsubscribe(streams: string[]): void {
+		this.send({
+			type: 'unsubscribe',
+			streams
+		});
+	}
+
+	/**
+	 * Set data compression
+	 */
+	setCompression(enabled: boolean): void {
+		this.enableCompression = enabled;
+		this.send({
+			type: 'set_compression',
+			enabled
+		});
+	}
+
+	/**
+	 * Set buffer size
+	 */
+	setBufferSize(size: number): void {
+		this.bufferSize = Math.max(1, Math.min(100, size));
+		// Trim buffer if needed
+		while (this.messageBuffer.length > this.bufferSize) {
+			this.messageBuffer.shift();
+		}
+	}
+
+	/**
+	 * Get current buffer size
+	 */
+	getBufferSize(): number {
+		return this.bufferSize;
+	}
+
+	/**
+	 * Clear the message buffer
+	 */
+	clearBuffer(): void {
+		this.messageBuffer = [];
+	}
 }
 
 // Singleton instance management
 let clientInstance: HackRFWebSocketClient | null = null;
 
 export function getHackRFWebSocketClient(config?: HackRFWebSocketConfig): HackRFWebSocketClient {
-    if (!clientInstance) {
-        clientInstance = new HackRFWebSocketClient(config);
-    }
-    return clientInstance;
+	if (!clientInstance) {
+		clientInstance = new HackRFWebSocketClient(config);
+	}
+	return clientInstance;
 }
 
 export function destroyHackRFWebSocketClient(): void {
-    if (clientInstance) {
-        clientInstance.destroy();
-        clientInstance = null;
-    }
+	if (clientInstance) {
+		clientInstance.destroy();
+		clientInstance = null;
+	}
 }

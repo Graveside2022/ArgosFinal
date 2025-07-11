@@ -196,17 +196,17 @@ describe('Component Functionality Tests', () => {
 				{ id: '3', lat: 40.758, lng: -73.9855 }
 			];
 
-			const groupNearbyDevices = (devices: typeof devices, threshold: number) => {
+			const groupNearbyDevices = (deviceList: typeof devices, threshold: number) => {
 				const groups: string[][] = [];
 				const used = new Set<string>();
 
-				for (const device of devices) {
+				for (const device of deviceList) {
 					if (used.has(device.id)) continue;
 
 					const group = [device.id];
 					used.add(device.id);
 
-					for (const other of devices) {
+					for (const other of deviceList) {
 						if (used.has(other.id)) continue;
 
 						// Simple distance check (simplified for test)

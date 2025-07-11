@@ -4,10 +4,18 @@ import { logInfo, logDebug } from '$lib/utils/logger';
 
 // Create logger adapter to match expected interface
 const logger = {
-  debug: (message: string) => logDebug(message, { component: 'Database' }),
-  info: (message: string) => logInfo(message, { component: 'Database' })
+	debug: (message: string) => logDebug(message, { component: 'Database' }),
+	info: (message: string) => logInfo(message, { component: 'Database' })
 };
 
-export const db = new Database(env.DATABASE_PATH, { verbose: logger.debug.bind(logger) });
+export const db = new Database(env.DATABASE_PATH, {
+	verbose: (message?: unknown, ...additionalArgs: unknown[]) => {
+		const fullMessage =
+			additionalArgs.length > 0
+				? `${String(message)} ${additionalArgs.join(' ')}`
+				: String(message);
+		logger.debug(fullMessage);
+	}
+});
 db.pragma('journal_mode = WAL');
 logger.info('Database connection established successfully.');

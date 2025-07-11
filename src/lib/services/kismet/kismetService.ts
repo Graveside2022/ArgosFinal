@@ -245,7 +245,7 @@ class KismetService {
 
 			// If we have a WebSocket connection, send filters through it
 			if (this.websocket?.isConnected()) {
-				this.websocket.send('apply_filters', { filters });
+				this.websocket.send({ type: 'apply_filters', filters });
 			}
 
 			// Also refresh devices with filters
@@ -399,7 +399,10 @@ class KismetService {
 				// Apply any existing filters
 				const currentState = get(this.state);
 				if (currentState.filters.length > 0) {
-					this.websocket?.send({ command: 'apply_filters', filters: currentState.filters });
+					this.websocket?.send({
+						command: 'apply_filters',
+						filters: currentState.filters
+					});
 				}
 			});
 
@@ -495,7 +498,6 @@ class KismetService {
 	 */
 	private async updateDevices(): Promise<void> {
 		try {
-
 			const result = await kismetAPI.getDevices({
 				limit: 1000
 			});

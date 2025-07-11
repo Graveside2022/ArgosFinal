@@ -69,7 +69,8 @@ describe.skipIf(arch().startsWith('arm'))('Visual Regression Tests', () => {
 				await new Promise((resolve) => setTimeout(resolve, 1000));
 
 				// Take screenshot
-				const screenshotPath = `tests/visual/screenshots/${pageName}-${viewportName}.png`;
+				const screenshotPath =
+					`tests/visual/screenshots/${pageName}-${viewportName}.png` as `${string}.png`;
 				await page.screenshot({ path: screenshotPath, fullPage: true });
 
 				// Compare with baseline
@@ -79,10 +80,10 @@ describe.skipIf(arch().startsWith('arm'))('Visual Regression Tests', () => {
 				try {
 					const baselineBuffer = await fs.readFile(baselinePath);
 
-					const baseline = PNG.sync.read(baselineBuffer);
+					const baseline = PNG.sync.read(Buffer.from(baselineBuffer));
 					const screenshotBuffer = await fs.readFile(screenshotPath);
 
-					const screenshot = PNG.sync.read(screenshotBuffer);
+					const screenshot = PNG.sync.read(Buffer.from(screenshotBuffer));
 
 					const w = baseline.width;
 
@@ -195,9 +196,9 @@ describe.skipIf(arch().startsWith('arm'))('Visual Regression Tests', () => {
 
 				// Compare screenshots
 
-				const before = PNG.sync.read(beforeHover);
+				const before = PNG.sync.read(Buffer.from(beforeHover));
 
-				const after = PNG.sync.read(afterHover);
+				const after = PNG.sync.read(Buffer.from(afterHover));
 
 				const diff = new PNG({ width: before.width, height: before.height });
 

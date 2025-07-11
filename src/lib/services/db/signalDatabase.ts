@@ -485,7 +485,6 @@ class SignalDatabase {
 			id: record.id,
 			lat: record.lat,
 			lon: record.lon,
-			position: { lat: record.lat, lon: record.lon },
 			power: record.power,
 			frequency: record.frequency,
 			timestamp: record.timestamp,

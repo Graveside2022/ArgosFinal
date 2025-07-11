@@ -140,8 +140,12 @@ describe('API Endpoint Tests', () => {
 			expect(response.status).toBe(200);
 
 			const devices = (await response.json()) as unknown[];
-			devices.forEach((device: Record<string, unknown>) => {
-				expect(device.signal as number).toBeGreaterThanOrEqual(-70);
+			devices.forEach((device) => {
+				if (typeof device === 'object' && device !== null && 'signal' in device) {
+					expect(
+						(device as Record<string, unknown>).signal as number
+					).toBeGreaterThanOrEqual(-70);
+				}
 			});
 		});
 

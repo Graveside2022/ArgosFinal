@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { performance } from 'perf_hooks';
-import WebSocket from 'ws';
 import { testUtils } from '../helpers/setup';
 
 const API_BASE_URL = process.env.TEST_URL || 'http://localhost:5173';
@@ -102,7 +101,7 @@ describe('Performance Benchmarks', () => {
 	describe.skip('WebSocket Performance Benchmarks', () => {
 		it('should handle high-frequency spectrum updates', async () => {
 			// Skip WebSocket tests as they require a real server
-			const ws = (await testUtils.waitForWebSocket(WS_URL)) as WebSocket;
+			const ws = await testUtils.waitForWebSocket(WS_URL);
 			const messageCount = 1000;
 			let receivedCount = 0;
 			const latencies: number[] = [];
@@ -164,7 +163,7 @@ describe('Performance Benchmarks', () => {
 		});
 
 		it('should handle large payload transfers efficiently', async () => {
-			const ws = (await testUtils.waitForWebSocket(WS_URL)) as WebSocket;
+			const ws = await testUtils.waitForWebSocket(WS_URL);
 
 			// Create large payload (1MB)
 			const largeData = new Array(1024 * 1024).fill('x').join('');

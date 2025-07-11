@@ -6,7 +6,7 @@ import {
 	updateEmergencyStopStatus,
 	type SpectrumData
 } from '$lib/stores/hackrf';
-import type { HackRFData } from '$lib/../types/signals';
+import type { HackRFData } from '$lib/types/signals';
 import type { HackRFStatus } from '$lib/services/api/hackrf';
 import { logError, logInfo, logDebug, logWarn } from '$lib/utils/logger';
 
@@ -136,7 +136,8 @@ export class HackRFAPI {
 				peak_power: rawData.power,
 				peak_freq: rawData.frequency,
 				avg_power: rawData.binData
-					? rawData.binData.reduce((a, b) => a + b, 0) / rawData.binData.length
+					? rawData.binData.reduce((a: number, b: number) => a + b, 0) /
+						rawData.binData.length
 					: undefined,
 				centerFreq: rawData.frequency,
 				sampleRate: 20e6, // Default

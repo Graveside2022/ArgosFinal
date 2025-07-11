@@ -5,6 +5,7 @@ import {
 	getClusterIcon
 } from '$lib/services/map/signalClustering';
 import type { SignalMarker } from '$lib/stores/map/signals';
+import { SignalSource } from '$lib/types/enums';
 
 describe('signalClustering', () => {
 	const createMockSignal = (
@@ -20,7 +21,7 @@ describe('signalClustering', () => {
 		power,
 		frequency,
 		timestamp: Date.now(),
-		source: 'hackrf',
+		source: SignalSource.HackRF,
 		metadata: { signalType: 'wifi' }
 	});
 

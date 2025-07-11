@@ -3,11 +3,13 @@
  * This file contains common types that should be reused to ensure consistency
  */
 
+import { SystemStatus, SignalSource as SignalSourceEnum } from './enums';
+
 /**
  * Signal source types supported by the application
  * This is the canonical definition that should be used everywhere
  */
-export type SignalSource = 'hackrf' | 'kismet' | 'manual' | 'rtl-sdr' | 'other';
+export type SignalSource = SignalSourceEnum;
 
 /**
  * Device information interface used across the application
@@ -40,7 +42,7 @@ export type DeviceRecord = Device;
  * HackRF sweep manager state types
  * Defines all possible states for the sweep manager
  */
-export type SweepManagerState = 'idle' | 'initializing' | 'running' | 'error' | 'stopping';
+export type SweepManagerState = SystemStatus;
 
 /**
  * WebSocket state types

@@ -2,6 +2,8 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { TestDataGenerator } from '../utils/testDataGenerator';
 import { PerformanceMonitor } from '../utils/performanceMonitor';
 import { getRFDatabase } from '$lib/server/db/database';
+import { SignalSource } from '$lib/types/enums';
+import type { SignalMarker } from '$lib/stores/map/signals';
 // Define Signal type locally for testing based on generator output
 interface Signal {
 	id: string;
@@ -19,26 +21,15 @@ interface MockSignalIngestionService {
 }
 
 // Helper function to convert Signal to SignalMarker format
-function toSignalMarker(signal: Signal): {
-	id: string;
-	lat: number;
-	lon: number;
-	position: { lat: number; lon: number };
-	power: number;
-	frequency: number;
-	timestamp: number;
-	source: 'hackrf';
-	metadata: Record<string, string | number | boolean>;
-} {
+function toSignalMarker(signal: Signal): SignalMarker {
 	return {
 		id: signal.id,
 		lat: signal.latitude,
 		lon: signal.longitude,
-		position: { lat: signal.latitude, lon: signal.longitude },
 		power: signal.strength,
 		frequency: signal.frequency,
 		timestamp: signal.timestamp,
-		source: 'hackrf',
+		source: SignalSource.HackRF,
 		metadata: signal.metadata
 	};
 }

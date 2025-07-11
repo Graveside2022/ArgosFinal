@@ -160,7 +160,7 @@ export function createValidationError(
  */
 export function getErrorProperty<T>(error: unknown, property: string, defaultValue: T): T {
 	if (error instanceof Error && property in error) {
-		return (error as Record<string, unknown>)[property] as T;
+		return (error as unknown as Record<string, unknown>)[property] as T;
 	}
 	return defaultValue;
 }

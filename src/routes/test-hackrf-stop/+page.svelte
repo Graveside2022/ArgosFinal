@@ -20,7 +20,10 @@
 	async function startSweep() {
 		try {
 			log('Starting sweep...');
-			const response = await hackrfAPI.startSweep([{ value: 2450, unit: 'MHz' }], 10);
+			const response = await hackrfAPI.startSweep(
+				[{ start: 2400e6, stop: 2500e6, step: 1e6 }],
+				10
+			);
 			log(`Start response: ${JSON.stringify(response)}`);
 		} catch (error: unknown) {
 			log(`Start error: ${error instanceof Error ? error.message : 'Unknown error'}`);

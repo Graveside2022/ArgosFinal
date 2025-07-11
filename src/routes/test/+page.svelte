@@ -3,6 +3,7 @@
     import { getHackRFWebSocketClient, getKismetWebSocketClient } from '$lib/services/websocket';
     import { hackrfAPI } from '$lib/services/api/hackrf';
     import { kismetAPI } from '$lib/services/api/kismet';
+    import { WebSocketEvent as WebSocketEventEnum } from '$lib/types/enums';
     import type { HackRFWebSocketClient } from '$lib/services/websocket/hackrf';
     import type { KismetWebSocketClient } from '$lib/services/websocket/kismet';
     
@@ -69,22 +70,26 @@
             maxReconnectAttempts: 3
         });
         
-        hackrfWS.on('open', () => {
+        hackrfWS.on(WebSocketEventEnum.Open, () => {
             hackrfWSConnected = true;
             addTestResult('HackRF WebSocket', 'success', 'Connected successfully');
             
             // Test sending commands
-            hackrfWS.requestStatus();
-            hackrfWS.requestSweepStatus();
+            if (hackrfWS) {
+                hackrfWS.requestStatus();
+                hackrfWS.requestSweepStatus();
+            }
         });
         
-        hackrfWS.on('error', (event) => {
+        hackrfWS.on(WebSocketEventEnum.Error, (event) => {
             hackrfWSConnected = false;
             addTestResult('HackRF WebSocket', 'failed', event.error?.message || 'Connection error');
         });
         
-        hackrfWS.on('message', (event) => {
-            addTestResult('HackRF WS Message', 'success', `Type: ${event.data?.type}`);
+        hackrfWS.on(WebSocketEventEnum.Message, (event) => {
+            const messageType = event.data && typeof event.data === 'object' && 'type' in event.data ? 
+                (event.data as { type: string }).type : 'unknown';
+            addTestResult('HackRF WS Message', 'success', `Type: ${messageType}`);
         });
         
         hackrfWS.connect();
@@ -96,22 +101,26 @@
             maxReconnectAttempts: 3
         });
         
-        kismetWS.on('open', () => {
+        kismetWS.on(WebSocketEventEnum.Open, () => {
             kismetWSConnected = true;
             addTestResult('Kismet WebSocket', 'success', 'Connected successfully');
             
             // Test sending commands
-            kismetWS.requestStatus();
-            kismetWS.requestDevicesList();
+            if (kismetWS) {
+                kismetWS.requestStatus();
+                kismetWS.requestDevicesList();
+            }
         });
         
-        kismetWS.on('error', (event) => {
+        kismetWS.on(WebSocketEventEnum.Error, (event) => {
             kismetWSConnected = false;
             addTestResult('Kismet WebSocket', 'failed', event.error?.message || 'Connection error');
         });
         
-        kismetWS.on('message', (event) => {
-            addTestResult('Kismet WS Message', 'success', `Type: ${event.data?.type}`);
+        kismetWS.on(WebSocketEventEnum.Message, (event) => {
+            const messageType = event.data && typeof event.data === 'object' && 'type' in event.data ? 
+                (event.data as { type: string }).type : 'unknown';
+            addTestResult('Kismet WS Message', 'success', `Type: ${messageType}`);
         });
         
         kismetWS.connect();

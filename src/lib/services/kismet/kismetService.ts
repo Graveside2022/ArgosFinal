@@ -6,6 +6,8 @@
 import { writable, derived, get, type Readable, type Writable } from 'svelte/store';
 import { kismetAPI } from '../api';
 import { KismetWebSocketClient } from '../websocket/kismet';
+import { WebSocketEvent as WebSocketEventEnum } from '$lib/types/enums';
+import type { WebSocketEvent } from '../websocket/base';
 import type {
 	KismetStatus,
 	KismetDevice,
@@ -392,7 +394,7 @@ class KismetService {
 			this.websocket = new KismetWebSocketClient();
 
 			// Handle connection events
-			this.websocket.on('open', () => {
+			this.websocket.on(WebSocketEventEnum.Open, () => {
 				// console.info('Kismet WebSocket connected');
 				this.reconnectAttempts = 0;
 
@@ -406,12 +408,12 @@ class KismetService {
 				}
 			});
 
-			this.websocket.on('close', () => {
+			this.websocket.on(WebSocketEventEnum.Close, () => {
 				// console.info('Kismet WebSocket disconnected');
 				void this.handleReconnect();
 			});
 
-			this.websocket.on('error', (event) => {
+			this.websocket.on(WebSocketEventEnum.Error, (event: WebSocketEvent) => {
 				console.error('Kismet WebSocket error:', event.error);
 				this.updateState({ error: event.error?.message || 'WebSocket error' });
 			});

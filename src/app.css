@@ -2,138 +2,34 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom component styles from the HackRF page */
-@layer components {
-	/* Glass effects */
-	.glass-panel {
-		@apply bg-bg-card/80 backdrop-blur-xl border border-border-primary/40;
-	}
+:root {
+  --font-sans: 'Inter', 'system-ui', '-apple-system', 'sans-serif';
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', 'Monaco', 'monospace';
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #141414;
+  --component-bg: #1a1a1a;
+  --component-bg-alt: #242424;
+  --component-bg-hover: #2a2a2a;
+  --text-primary: #f5f5f5;
+  --text-secondary: #a3a3a3;
+  --text-tertiary: #737373;
+  --border-primary: #262626;
+  --border-secondary: #404040;
+  --accent-primary: #2563eb;
+  --accent-primary-hover: #1d4ed8;
+  --accent-secondary: #4f46e5;
+  --accent-secondary-hover: #4338ca;
+  --status-green: #22c55e;
+  --status-yellow: #eab308;
+  --status-red: #ef4444;
+  --status-blue: #3b82f6;
+  --status-orange: #f97316;
+}
 
-	.glass-panel-light {
-		@apply bg-bg-card/60 backdrop-blur-md border border-border-primary/30;
-	}
-
-	.glass-button {
-		@apply bg-bg-button/20 backdrop-blur-sm border border-border-primary/40 
-           hover:bg-bg-button/40 hover:border-border-hover/60 transition-all duration-200;
-	}
-
-	.glass-input {
-		@apply bg-bg-input/60 backdrop-blur-sm border border-border-primary/40 
-           text-text-primary placeholder-text-muted
-           focus:bg-bg-input/80 focus:border-accent-primary/60 focus:outline-none
-           transition-all duration-200;
-	}
-
-	/* Saasfly components */
-	.saasfly-feature-card {
-		@apply rounded-2xl p-8 bg-gradient-to-br from-bg-card/80 via-bg-card/60 to-bg-card/40 
-           border border-border-primary/40 backdrop-blur-xl shadow-lg hover:shadow-xl 
-           hover:border-accent-primary/30 hover:bg-gradient-to-br hover:from-bg-card/90 
-           hover:via-bg-card/70 hover:to-bg-card/50 transition-all duration-300;
-	}
-
-	.saasfly-button-primary {
-		@apply px-6 py-3 bg-accent-primary text-black font-semibold rounded-lg 
-           hover:bg-accent-hover hover:shadow-lg transition-all duration-200;
-	}
-
-	.saasfly-button-secondary {
-		@apply px-6 py-3 bg-bg-button/20 text-text-primary font-medium rounded-lg 
-           border border-border-primary hover:bg-bg-button/40 hover:border-border-hover 
-           transition-all duration-200;
-	}
-
-	/* Navigation styles */
-	.nav-link {
-		@apply text-text-secondary hover:text-accent-primary transition-colors duration-200;
-	}
-
-	.nav-link.active {
-		@apply text-accent-primary font-semibold;
-	}
-
-	.mobile-nav-link {
-		@apply flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200
-           text-text-secondary hover:text-accent-primary hover:bg-bg-hover/20;
-	}
-
-	.mobile-nav-link.active {
-		@apply text-accent-primary bg-bg-hover/20;
-	}
-
-	/* Status indicators */
-	.status-indicator {
-		@apply w-2 h-2 rounded-full;
-	}
-
-	/* HackRF brand styles */
-	.hackrf-brand {
-		@apply bg-gradient-to-r from-accent-primary to-accent-hover bg-clip-text text-transparent;
-	}
-
-	.sweep-brand {
-		@apply bg-gradient-to-r from-neon-cyan to-neon-cyan-light bg-clip-text text-transparent;
-	}
-
-	/* Shadow effects */
-	.shadow-red-glow {
-		box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
-	}
-
-	.shadow-mono-glow {
-		box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
-	}
-
-	.status-connected {
-		@apply bg-green-500 animate-pulse;
-	}
-
-	.status-disconnected {
-		@apply bg-red-500;
-	}
-
-	.status-connecting {
-		@apply bg-yellow-500 animate-pulse;
-	}
-
-	/* Frequency components */
-	.frequency-item {
-		@apply flex items-center justify-between p-4 rounded-lg bg-bg-input/50 
-           border border-border-primary hover:border-accent-primary/50 
-           transition-all duration-200;
-	}
-
-	.frequency-config-icon {
-		@apply text-accent-primary;
-	}
-
-	.frequency-config-header {
-		@apply text-text-primary group-hover:text-accent-primary;
-	}
-
-	/* Sweep control styles */
-	.sweep-control-active {
-		@apply border-accent-primary bg-accent-primary/10;
-	}
-
-	/* Spectrum display */
-	.spectrum-container {
-		@apply bg-bg-card rounded-xl border border-border-primary p-6;
-	}
-
-	.signal-strength-bar {
-		@apply h-full transition-all duration-300;
-	}
-
-	/* Error states */
-	.error-panel {
-		@apply bg-error-bg border border-error-border rounded-lg p-4;
-	}
-
-	.recovery-panel {
-		@apply bg-recovery-bg border border-recovery-border rounded-lg p-4;
-	}
+/* Add any other global styles below */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
 }
 
 /* Geometric background styles */
@@ -254,6 +150,24 @@
 	}
 	50% {
 		box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.4);
+	}
+}
+
+@keyframes fade-in {
+	0% {
+		opacity: 0;
+	}
+	100% {
+		opacity: 1;
+	}
+}
+
+@keyframes pulse-bg {
+	0%, 100% {
+		background-color: var(--status-green);
+	}
+	50% {
+		background-color: rgba(34, 197, 94, 0.5);
 	}
 }
 

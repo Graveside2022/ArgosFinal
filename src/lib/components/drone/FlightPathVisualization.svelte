@@ -58,7 +58,7 @@
     }
     
     // Create flight path with altitude coloring
-    const pathPoints = flightPath.map(point => [point.lat, point.lon]);
+    const pathPoints: [number, number][] = flightPath.map(point => [point.lat, point.lon] as [number, number]);
     
     if (showAltitude) {
       // Create gradient path based on altitude
@@ -126,10 +126,10 @@
           Time: ${new Date(capture.timestamp).toLocaleTimeString()}
         `);
         
-        signalLayer.addLayer(circle);
+        signalLayer?.addLayer(circle);
         
         // Add signal direction indicators
-        if (capture.strongestSignal) {
+        if (capture.strongestSignal && signalLayer) {
           const bearing = calculateBearing(
             capture.position,
             { lat: capture.strongestSignal.lat, lon: capture.strongestSignal.lon }

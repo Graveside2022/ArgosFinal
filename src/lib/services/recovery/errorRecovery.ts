@@ -5,6 +5,7 @@
 
 import { writable, derived, type Readable } from 'svelte/store';
 import { logWarn, logInfo, logError } from '$lib/utils/logger';
+import { CircuitBreakerState } from '$lib/types/enums';
 
 interface ErrorEvent {
   id: string;
@@ -40,11 +41,11 @@ interface RecoveryState {
   activeRecoveries: Map<string, boolean>;
   errorCounts: Map<string, number>;
   lastRecovery: Map<string, number>;
-  circuitBreakers: Map<string, CircuitBreakerState>;
+  circuitBreakers: Map<string, CircuitBreaker>;
 }
 
-interface CircuitBreakerState {
-  state: 'closed' | 'open' | 'half-open';
+interface CircuitBreaker {
+  state: CircuitBreakerState;
   failures: number;
   lastFailure: number;
   nextRetry: number;
@@ -83,7 +84,7 @@ class ErrorRecoveryService {
   public readonly errors: Readable<ErrorEvent[]>;
   public readonly activeRecoveries: Readable<number>;
   public readonly errorRate: Readable<number>;
-  public readonly circuitBreakers: Readable<Map<string, CircuitBreakerState>>;
+  public readonly circuitBreakers: Readable<Map<string, CircuitBreaker>>;
   
   constructor() {
     this.errors = derived(this.state, $state => $state.errors);
@@ -159,8 +160,8 @@ class ErrorRecoveryService {
       
       // Check if circuit breaker should open
       if (count >= this.options.circuitBreakerThreshold) {
-        const breaker: CircuitBreakerState = {
-          state: 'open',
+        const breaker: CircuitBreaker = {
+          state: CircuitBreakerState.Open,
           failures: count,
           lastFailure: Date.now(),
           nextRetry: Date.now() + this.options.circuitBreakerTimeout
@@ -417,7 +418,7 @@ class ErrorRecoveryService {
     let open = false;
     this.state.subscribe(state => {
       const breaker = state.circuitBreakers.get(service);
-      open = breaker?.state === 'open';
+      open = breaker?.state === CircuitBreakerState.Open;
     })();
     return open;
   }
@@ -484,13 +485,13 @@ class ErrorRecoveryService {
       const now = Date.now();
       
       state.circuitBreakers.forEach((breaker, service) => {
-        if (breaker.state === 'open' && now >= breaker.nextRetry) {
+        if (breaker.state === CircuitBreakerState.Open && now >= breaker.nextRetry) {
           // Move to half-open state
-          breaker.state = 'half-open';
+          breaker.state = CircuitBreakerState.HalfOpen;
           
           // Reset error count to allow retry
           state.errorCounts.set(service, 0);
-        } else if (breaker.state === 'half-open') {
+        } else if (breaker.state === CircuitBreakerState.HalfOpen) {
           // Check if service has recovered
           const errorCount = state.errorCounts.get(service) || 0;
           
@@ -499,7 +500,7 @@ class ErrorRecoveryService {
             state.circuitBreakers.delete(service);
           } else if (errorCount >= this.options.circuitBreakerThreshold) {
             // Re-open circuit breaker
-            breaker.state = 'open';
+            breaker.state = CircuitBreakerState.Open;
             breaker.failures += errorCount;
             breaker.lastFailure = now;
             breaker.nextRetry = now + this.options.circuitBreakerTimeout;

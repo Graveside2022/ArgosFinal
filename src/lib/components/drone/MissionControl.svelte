@@ -63,7 +63,7 @@
   const dispatch = createEventDispatcher();
   
   function getLeafletLibrary(): LeafletLibrary {
-    const windowWithL = window as { L?: LeafletLibrary };
+    const windowWithL = window as unknown as { L?: LeafletLibrary };
     if (!windowWithL.L) {
       throw new Error('Leaflet library not found');
     }

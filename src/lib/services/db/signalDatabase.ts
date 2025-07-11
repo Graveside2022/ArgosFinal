@@ -6,6 +6,7 @@
 import type { SignalMarker } from '$lib/stores/map/signals';
 import type { NetworkEdge } from '$lib/services/map/networkAnalyzer';
 import type { SignalSource, DeviceRecord as SharedDeviceRecord } from '$lib/types/shared';
+import { SignalSource as SignalSourceEnum } from '$lib/types/enums';
 
 export interface SignalRecord {
 	id: string;
@@ -17,7 +18,7 @@ export interface SignalRecord {
 	gridLon: number;
 	power: number;
 	frequency: number;
-	source: string;
+	source: SignalSource;
 	metadata?: Record<string, unknown>;
 }
 
@@ -494,8 +495,15 @@ class SignalDatabase {
 	}
 
 	private normalizeSignalSource(source: string): SignalSource {
-		const validSources: SignalSource[] = ['hackrf', 'kismet', 'manual', 'rtl-sdr', 'other'];
-		return validSources.includes(source as SignalSource) ? (source as SignalSource) : 'other';
+		// Map string values to enum values
+		const sourceMap: Record<string, SignalSource> = {
+			'hackrf': SignalSourceEnum.HackRF,
+			'kismet': SignalSourceEnum.Kismet,
+			'manual': SignalSourceEnum.Manual,
+			'rtl-sdr': SignalSourceEnum.RtlSdr,
+			'other': SignalSourceEnum.Other
+		};
+		return sourceMap[source.toLowerCase()] || SignalSourceEnum.Other;
 	}
 
 	private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {

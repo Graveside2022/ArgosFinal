@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { getSignalDatabase } from '$lib/services/db/signalDatabase';
   import type { SignalMarker } from '$lib/stores/map/signals';
+  import { SignalSource } from '$lib/types/enums';
   
   interface TestResults {
     stored?: number;
@@ -35,7 +36,7 @@
           power: -50 - Math.random() * 40,
           frequency: 2400 + Math.random() * 100,
           timestamp: Date.now() - Math.random() * 60000,
-          source: 'hackrf',
+          source: SignalSource.HackRF,
           metadata: {
             signalType: Math.random() > 0.5 ? 'wifi' : 'bluetooth'
           }

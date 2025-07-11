@@ -27,8 +27,8 @@ const localStorageMock = {
 global.localStorage = localStorageMock as unknown as Storage;
 
 // Mock canvas
-HTMLCanvasElement.prototype.getContext = vi.fn((contextType: string) => {
-	if (contextType === '2d') {
+HTMLCanvasElement.prototype.getContext = vi.fn(((contextId: string, _options?: unknown) => {
+	if (contextId === '2d') {
 		return {
 			fillStyle: '',
 			fillRect: vi.fn(),
@@ -79,7 +79,7 @@ HTMLCanvasElement.prototype.getContext = vi.fn((contextType: string) => {
 		} as unknown as CanvasRenderingContext2D;
 	}
 	return null;
-}) as unknown as typeof global.document.getElementById;
+}) as unknown as typeof HTMLCanvasElement.prototype.getContext);
 
 // Mock ResizeObserver
 global.ResizeObserver = vi.fn(() => ({

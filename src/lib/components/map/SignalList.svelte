@@ -2,6 +2,7 @@
   import { formatDistance, calculateDistance } from '$lib/services/map/mapUtils';
   import type { SignalMarker } from '$lib/stores/map/signals';
   import { userPosition } from '$lib/stores/map/signals';
+  import { SignalSource } from '$lib/types/enums';
   
   export let signals: SignalMarker[] = [];
   export let onSignalClick: (signal: SignalMarker) => void = () => {};
@@ -39,7 +40,7 @@
   }
   
   function getSignalIcon(signal: SignalMarker): string {
-    if (signal.source === 'hackrf') {
+    if (signal.source === SignalSource.HackRF) {
       return '📡';
     } else if (signal.metadata.signalType === 'wifi') {
       return '📶';

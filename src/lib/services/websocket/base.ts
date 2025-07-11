@@ -1,4 +1,6 @@
-export type WebSocketEventType = 'open' | 'close' | 'error' | 'message' | 'reconnecting';
+import { WebSocketEvent as WebSocketEventEnum } from '$lib/types/enums';
+
+export type WebSocketEventType = WebSocketEventEnum;
 
 export interface WebSocketEvent {
 	type: WebSocketEventType;
@@ -58,7 +60,7 @@ export abstract class BaseWebSocket {
 		}
 
 		this.isIntentionalClose = false;
-		this.emit('reconnecting', { attempt: this.reconnectAttempts });
+		this.emit(WebSocketEventEnum.Reconnecting, { attempt: this.reconnectAttempts });
 
 		try {
 			// Handle both browser and server environments
@@ -176,7 +178,7 @@ export abstract class BaseWebSocket {
 			this.reconnectAttempts = 0;
 			this.currentReconnectInterval = this.config.reconnectInterval;
 
-			this.emit('open', { event });
+			this.emit(WebSocketEventEnum.Open, { event });
 			this.onConnected();
 			this.startHeartbeat();
 		};
@@ -184,7 +186,7 @@ export abstract class BaseWebSocket {
 		this.ws.onmessage = (event) => {
 			try {
 				const data = this.parseMessage(event.data as string | ArrayBuffer | Blob);
-				this.emit('message', { data, event });
+				this.emit(WebSocketEventEnum.Message, { data, event });
 				this.handleMessage(data);
 			} catch (error) {
 				console.error(`[${this.constructor.name}] Failed to parse message:`, error);
@@ -194,14 +196,14 @@ export abstract class BaseWebSocket {
 		this.ws.onerror = (event) => {
 			console.error(`[${this.constructor.name}] WebSocket error:`, event);
 			const error = new Error('WebSocket error');
-			this.emit('error', { error, event });
+			this.emit(WebSocketEventEnum.Error, { error, event });
 			this.handleConnectionError(error);
 		};
 
 		this.ws.onclose = (event) => {
 			// console.info(`[${this.constructor.name}] WebSocket closed:`, event.code, event.reason);
 
-			this.emit('close', { code: event.code, reason: event.reason, event });
+			this.emit(WebSocketEventEnum.Close, { code: event.code, reason: event.reason, event });
 			this.onDisconnected();
 			this.cleanup();
 
@@ -251,7 +253,7 @@ export abstract class BaseWebSocket {
 	 */
 	protected handleConnectionError(error: unknown): void {
 		const errorObj = error instanceof Error ? error : new Error(String(error));
-		this.emit('error', { error: errorObj });
+		this.emit(WebSocketEventEnum.Error, { error: errorObj });
 		this.onError(errorObj);
 	}
 

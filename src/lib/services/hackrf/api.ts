@@ -9,6 +9,7 @@ import {
 import type { HackRFData } from '$lib/types/signals';
 import type { HackRFStatus } from '$lib/services/api/hackrf';
 import { logError, logInfo, logDebug, logWarn } from '$lib/utils/logger';
+import { SystemStatus } from '$lib/types/enums';
 
 export class HackRFAPI {
 	eventSource: EventSource | null = null;
@@ -166,7 +167,7 @@ export class HackRFAPI {
 
 			// Update sweep status
 			const newStatus = {
-				active: status.state === 'running' || status.state === 'sweeping',
+				active: status.state === SystemStatus.Running || status.state === SystemStatus.Sweeping,
 				startFreq: status.startFrequency || 0,
 				endFreq: status.endFrequency || 0,
 				currentFreq: status.currentFrequency || 0,

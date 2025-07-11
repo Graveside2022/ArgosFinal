@@ -4,6 +4,7 @@
  */
 
 import { getHackRFWebSocketClient, getKismetWebSocketClient } from './index';
+import { WebSocketEvent as WebSocketEventEnum } from '$lib/types/enums';
 // import { get } from 'svelte/store';
 // import { hackrfConnection, kismetConnection } from '$lib/stores/connection';
 
@@ -19,20 +20,20 @@ export async function testWebSocketConnections() {
     });
     
     // Set up HackRF event listeners
-    hackrfClient.on('open', () => {
+    hackrfClient.on(WebSocketEventEnum.Open, () => {
         // console.info('✓ HackRF WebSocket connected');
         // console.info('Connection status:', get(hackrfConnection));
     });
     
-    hackrfClient.on('error', (event) => {
+    hackrfClient.on(WebSocketEventEnum.Error, (event) => {
         console.error('✗ HackRF WebSocket error:', event.error);
     });
     
-    hackrfClient.on('close', (_event) => {
+    hackrfClient.on(WebSocketEventEnum.Close, (_event) => {
         // console.info('HackRF WebSocket closed:', event.data);
     });
     
-    hackrfClient.on('message', (_event) => {
+    hackrfClient.on(WebSocketEventEnum.Message, (_event) => {
         // console.info('HackRF message received:', event.data?.type);
     });
     
@@ -48,7 +49,7 @@ export async function testWebSocketConnections() {
     });
     
     // Set up Kismet event listeners
-    kismetClient.on('open', () => {
+    kismetClient.on(WebSocketEventEnum.Open, () => {
         // console.info('✓ Kismet WebSocket connected');
         // console.info('Connection status:', get(kismetConnection));
         
@@ -60,15 +61,15 @@ export async function testWebSocketConnections() {
         kismetClient.requestDevicesList();
     });
     
-    kismetClient.on('error', (event) => {
+    kismetClient.on(WebSocketEventEnum.Error, (event) => {
         console.error('✗ Kismet WebSocket error:', event.error);
     });
     
-    kismetClient.on('close', (_event) => {
+    kismetClient.on(WebSocketEventEnum.Close, (_event) => {
         // console.info('Kismet WebSocket closed:', event.data);
     });
     
-    kismetClient.on('message', (_event) => {
+    kismetClient.on(WebSocketEventEnum.Message, (_event) => {
         // console.info('Kismet message received:', event.data?.type);
     });
     

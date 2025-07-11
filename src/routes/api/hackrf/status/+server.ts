@@ -1,6 +1,7 @@
 import type { RequestHandler } from './$types';
 import { json } from '@sveltejs/kit';
 import { getSweepManager } from '$lib/server/hackrf/sweepManager';
+import { SystemStatus } from '$lib/types/enums';
 
 export const GET: RequestHandler = () => {
 	try {
@@ -8,8 +9,8 @@ export const GET: RequestHandler = () => {
 		const status = manager.getStatus();
 
 		return json({
-			connected: status.state !== 'idle',
-			sweeping: status.state === 'running',
+			connected: status.state !== SystemStatus.Idle,
+			sweeping: status.state === SystemStatus.Running,
 			deviceInfo: null, // Not available in current implementation
 			currentFrequency: status.currentFrequency || null,
 			sweepConfig: {
@@ -29,7 +30,7 @@ export const GET: RequestHandler = () => {
 				deviceInfo: null,
 				currentFrequency: null,
 				sweepConfig: null,
-				status: { state: 'error' },
+				status: { state: SystemStatus.Error },
 				timestamp: Date.now(),
 				error: error instanceof Error ? error.message : 'Unknown error'
 			},

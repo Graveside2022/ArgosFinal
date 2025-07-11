@@ -14,6 +14,7 @@ import type {
 	SpectrumData
 } from '../api/hackrf';
 import type { WebSocketEvent, WebSocketEventType } from '../websocket/base';
+import { WebSocketEvent as WebSocketEventEnum } from '$lib/types/enums';
 
 interface HackRFServiceState {
 	status: HackRFStatus;
@@ -323,17 +324,17 @@ class HackRFService {
 			this.websocket = new HackRFWebSocketClient();
 
 			// Handle connection events
-			this.websocket.on('open', (_event: WebSocketEvent) => {
+			this.websocket.on(WebSocketEventEnum.Open, (_event: WebSocketEvent) => {
 				// HackRF WebSocket connected
 				this.reconnectAttempts = 0;
 			});
 
-			this.websocket.on('close', (_event: WebSocketEvent) => {
+			this.websocket.on(WebSocketEventEnum.Close, (_event: WebSocketEvent) => {
 				// HackRF WebSocket disconnected
 				void this.handleReconnect();
 			});
 
-			this.websocket.on('error', (event: HackRFWebSocketEvent) => {
+			this.websocket.on(WebSocketEventEnum.Error, (event: HackRFWebSocketEvent) => {
 				// HackRF WebSocket error
 				this.updateState({ error: event.error?.message || 'WebSocket error' });
 			});

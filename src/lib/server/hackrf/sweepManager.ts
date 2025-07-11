@@ -2,6 +2,7 @@ import type { SweepConfig, SweepStatus, SpectrumData, HackRFHealth } from './typ
 import { EventEmitter } from 'events';
 import { spawn, exec, type ChildProcess } from 'child_process';
 import { logInfo, logError, logWarn, logDebug } from '$lib/utils/logger';
+import { SystemStatus } from '$lib/types/enums';
 
 /**
  * Manages HackRF sweep operations - direct port from SweeperService
@@ -9,7 +10,7 @@ import { logInfo, logError, logWarn, logDebug } from '$lib/utils/logger';
  */
 export class SweepManager extends EventEmitter {
 	// State management
-	private status: SweepStatus = { state: 'idle' };
+	private status: SweepStatus = { state: SystemStatus.Idle };
 	private isRunning = false;
 	private isCycling = false;
 	private inFrequencyTransition = false;
@@ -62,7 +63,7 @@ export class SweepManager extends EventEmitter {
 
 	// Health monitoring
 	private cyclingHealth = {
-		status: 'idle' as string,
+		status: SystemStatus.Idle,
 		processHealth: 'unknown' as string,
 		processStartupPhase: 'none' as string,
 		lastSwitchTime: null as Date | null,
@@ -144,7 +145,7 @@ export class SweepManager extends EventEmitter {
 		this.bufferOverflowCount = 0;
 
 		// Reset health status
-		this.cyclingHealth.status = 'idle';
+		this.cyclingHealth.status = SystemStatus.Idle;
 		this.cyclingHealth.processHealth = 'stopped';
 		this.cyclingHealth.lastDataReceived = null;
 		this.cyclingHealth.recovery.recoveryAttempts = 0;
@@ -259,7 +260,7 @@ export class SweepManager extends EventEmitter {
 	 * Start a new sweep operation
 	 */
 	async startSweep(config: SweepConfig): Promise<void> {
-		if (this.status.state === 'running') {
+		if (this.status.state === SystemStatus.Running) {
 			throw new Error('Sweep already in progress');
 		}
 
@@ -338,7 +339,7 @@ export class SweepManager extends EventEmitter {
 
 			// Update status
 			this.status = {
-				state: 'running',
+				state: SystemStatus.Running,
 				currentFrequency: this._convertToHz(
 					validatedFreqs[0].value,
 					validatedFreqs[0].unit
@@ -387,12 +388,12 @@ export class SweepManager extends EventEmitter {
 		logInfo('🛑 Stopping sweep... Current state:', { state: this.status.state });
 
 		// Allow stopping from any state except idle
-		if (this.status.state === 'idle') {
+		if (this.status.state === SystemStatus.Idle) {
 			logInfo('Sweep already stopped');
 			return;
 		}
 
-		this.status.state = 'stopping';
+		this.status.state = SystemStatus.Stopping;
 		this._emitEvent('status', this.status);
 
 		// Stop cycling first
@@ -429,13 +430,13 @@ export class SweepManager extends EventEmitter {
 		this.consecutiveErrors = 0;
 
 		// Update status
-		this.status = { state: 'idle' };
+		this.status = { state: SystemStatus.Idle };
 		this._emitEvent('status', this.status);
 		this._emitEvent('status_change', { status: 'stopped' });
 
 		// Force emit idle status to ensure UI updates
 		setTimeout(() => {
-			this._emitEvent('status', { state: 'idle' });
+			this._emitEvent('status', { state: SystemStatus.Idle });
 		}, 100);
 
 		logInfo('Sweep stopped successfully');
@@ -520,7 +521,7 @@ export class SweepManager extends EventEmitter {
 		this.frequencyBlacklist.clear();
 
 		// Update status
-		this.status = { state: 'idle' };
+		this.status = { state: SystemStatus.Idle };
 		this._emitEvent('status', this.status);
 		this._emitEvent('emergency_stop', { timestamp: new Date().toISOString() });
 
@@ -532,7 +533,7 @@ export class SweepManager extends EventEmitter {
 	 */
 	async forceCleanup(): Promise<void> {
 		await this._forceCleanupExistingProcesses();
-		this.status = { state: 'idle' };
+		this.status = { state: SystemStatus.Idle };
 	}
 
 	/**
@@ -1428,7 +1429,7 @@ export class SweepManager extends EventEmitter {
 			);
 			this._emitError('Max recovery attempts reached', 'recovery_failed');
 			// Ensure status is properly updated before stopping
-			this.status = { state: 'stopping' };
+			this.status = { state: SystemStatus.Stopping };
 			this._emitEvent('status', this.status);
 			await this.stopSweep();
 			return;

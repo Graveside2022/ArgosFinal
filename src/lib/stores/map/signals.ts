@@ -1,4 +1,5 @@
 import { writable, derived } from 'svelte/store';
+import { SignalSource } from '$lib/types/enums';
 
 type LatLngExpression = [number, number] | { lat: number; lng: number };
 
@@ -10,7 +11,7 @@ export interface SignalMarker {
   power: number;
   timestamp: number;
   altitude?: number; // Altitude in meters (for drone operations)
-  source: 'hackrf' | 'kismet' | 'manual' | 'rtl-sdr' | 'other';
+  source: SignalSource;
   metadata: {
     ssid?: string;
     mac?: string;
@@ -74,8 +75,8 @@ export const filteredSignals = derived(
       if ((now - signal.timestamp) / 1000 > $config.maxAge) return;
       
       // Check source visibility
-      if (signal.source === 'hackrf' && !$config.showHackRF) return;
-      if (signal.source === 'kismet' && !$config.showKismet) return;
+      if (signal.source === SignalSource.HackRF && !$config.showHackRF) return;
+      if (signal.source === SignalSource.Kismet && !$config.showKismet) return;
       
       // Check signal strength
       if (signal.power < $config.signalThreshold) return;
@@ -101,8 +102,8 @@ export const signalStats = derived(signals, $signals => {
   
   let totalPower = 0;
   $signals.forEach(signal => {
-    if (signal.source === 'hackrf') stats.hackrf++;
-    if (signal.source === 'kismet') stats.kismet++;
+    if (signal.source === SignalSource.HackRF) stats.hackrf++;
+    if (signal.source === SignalSource.Kismet) stats.kismet++;
     
     totalPower += signal.power;
     
@@ -131,7 +132,7 @@ export function removeSignal(id: string) {
   });
 }
 
-export function clearSignals(source?: 'hackrf' | 'kismet') {
+export function clearSignals(source?: SignalSource) {
   signals.update(s => {
     if (source) {
       // Remove only signals from specific source
@@ -181,9 +182,9 @@ export function getSignalColor(power: number): string {
 
 // Get icon for signal type
 export function getSignalIcon(signal: SignalMarker): string {
-  if (signal.source === 'hackrf') {
+  if (signal.source === SignalSource.HackRF) {
     return 'radio'; // RF signal icon
-  } else if (signal.source === 'kismet') {
+  } else if (signal.source === SignalSource.Kismet) {
     if (signal.metadata.signalType === 'wifi') {
       return 'wifi';
     } else if (signal.metadata.signalType === 'bluetooth') {

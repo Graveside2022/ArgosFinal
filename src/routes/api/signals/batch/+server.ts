@@ -2,6 +2,18 @@ import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import { getRFDatabase } from '$lib/server/db/database';
 import type { SignalMarker } from '$lib/stores/map/signals';
+import { SignalSource } from '$lib/types/enums';
+
+function normalizeSignalSource(source: string): SignalSource {
+	const sourceMap: Record<string, SignalSource> = {
+		'hackrf': SignalSource.HackRF,
+		'kismet': SignalSource.Kismet,
+		'manual': SignalSource.Manual,
+		'rtl-sdr': SignalSource.RtlSdr,
+		'other': SignalSource.Other
+	};
+	return sourceMap[source?.toLowerCase()] || SignalSource.HackRF;
+}
 
 export const POST: RequestHandler = async ({ request }) => {
 	try {
@@ -46,9 +58,7 @@ export const POST: RequestHandler = async ({ request }) => {
 				frequency: signalObj.frequency as number,
 				power: signalObj.power as number,
 				timestamp: timestamp as number,
-				source: (['hackrf', 'kismet', 'manual'].includes(signalObj.source as string)
-					? signalObj.source
-					: 'hackrf') as 'hackrf' | 'kismet' | 'manual',
+				source: normalizeSignalSource(signalObj.source as string),
 				metadata: {
 					bandwidth: signalObj.bandwidth as number,
 					modulation: signalObj.modulation as string,

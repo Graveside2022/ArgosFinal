@@ -9,6 +9,7 @@ import type {
     KismetAlert,
     KismetGPS
 } from '$lib/types/kismet';
+import { KismetEvent } from '$lib/types/enums';
 
 export type KismetWebSocketConfig = BaseWebSocketConfig;
 
@@ -42,11 +43,11 @@ export class KismetWebSocketClient extends BaseWebSocket {
         });
 
         // Device updates
-        this.onMessage('device_update', (data) => {
+        this.onMessage(KismetEvent.DeviceUpdate, (data) => {
             this.handleDeviceUpdate(data);
         });
 
-        this.onMessage('device_new', (data) => {
+        this.onMessage(KismetEvent.DeviceNew, (data) => {
             this.handleNewDevice(data);
         });
 

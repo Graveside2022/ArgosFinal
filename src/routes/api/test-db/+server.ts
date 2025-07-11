@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import type { SignalMarker } from '$lib/stores/map/signals';
+import { SignalSource } from '$lib/types/enums';
 
 export const GET: RequestHandler = () => {
   try {
@@ -14,7 +15,7 @@ export const GET: RequestHandler = () => {
       power: -65,
       frequency: 2412,
       timestamp: Date.now(),
-      source: 'hackrf',
+      source: SignalSource.HackRF,
       metadata: {
         signalType: 'wifi',
         channel: 1

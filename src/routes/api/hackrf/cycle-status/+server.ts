@@ -1,6 +1,7 @@
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
 import type { ApiResponse, SweepStatus } from '$lib/server/hackrf/types';
+import { SystemStatus } from '$lib/types/enums';
 
 export const GET: RequestHandler = () => {
   try {
@@ -8,7 +9,7 @@ export const GET: RequestHandler = () => {
     
     // For now, return mock data
     const status: SweepStatus = {
-      state: 'idle'
+      state: SystemStatus.Idle
     };
 
     const response: ApiResponse<SweepStatus> = {

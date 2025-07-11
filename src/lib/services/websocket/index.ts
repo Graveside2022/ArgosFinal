@@ -26,12 +26,12 @@ export class WebSocketManager {
      */
     init(): void {
         // Initialize HackRF client
-        if (this.config.hackrf !== false) {
+        if (this.config.hackrf) {
             this.hackrfClient = getHackRFWebSocketClient(this.config.hackrf);
         }
 
         // Initialize Kismet client
-        if (this.config.kismet !== false) {
+        if (this.config.kismet) {
             this.kismetClient = getKismetWebSocketClient(this.config.kismet);
         }
 

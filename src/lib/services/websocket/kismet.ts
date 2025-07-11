@@ -19,17 +19,17 @@ export interface KismetMessage {
 }
 
 export class KismetWebSocketClient extends BaseWebSocket {
-    private lastHeartbeat: number = Date.now();
+    protected lastHeartbeat: number = Date.now();
     
-    constructor(config: KismetWebSocketConfig = {}) {
-        super({
-            url: config.url || 'ws://localhost:8002/ws/kismet',
-            // name: 'Kismet', // Remove non-existent property
-            reconnectInterval: config.reconnectInterval || 5000,
-            maxReconnectAttempts: config.maxReconnectAttempts || -1,
-            heartbeatInterval: config.heartbeatInterval || 30000,
+    constructor(config: Partial<KismetWebSocketConfig> = {}) {
+        const finalConfig: KismetWebSocketConfig = {
+            url: 'ws://localhost:8002/ws/kismet',
+            reconnectInterval: 5000,
+            maxReconnectAttempts: -1,
+            heartbeatInterval: 30000,
             ...config
-        });
+        };
+        super(finalConfig);
         
         // Setup message handlers
         this.setupMessageHandlers();

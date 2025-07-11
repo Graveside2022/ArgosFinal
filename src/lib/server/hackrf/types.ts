@@ -17,8 +17,10 @@ export interface SweepConfig {
 	cycleTime?: number; // Time per frequency in ms
 }
 
+import type { SweepManagerState } from '$lib/types/shared';
+
 export interface SweepStatus {
-	state: 'idle' | 'running' | 'stopping' | 'error';
+	state: SweepManagerState;
 	currentFrequency?: number;
 	sweepProgress?: number;
 	totalSweeps?: number;

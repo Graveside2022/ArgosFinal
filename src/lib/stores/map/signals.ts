@@ -10,7 +10,7 @@ export interface SignalMarker {
   power: number;
   timestamp: number;
   altitude?: number; // Altitude in meters (for drone operations)
-  source: 'hackrf' | 'kismet' | 'manual';
+  source: 'hackrf' | 'kismet' | 'manual' | 'rtl-sdr' | 'other';
   metadata: {
     ssid?: string;
     mac?: string;
@@ -22,6 +22,8 @@ export interface SignalMarker {
     modulation?: string;
     velocity?: { speed: number; heading: number }; // For moving signals
     flightPath?: { lat: number; lon: number; alt: number }[]; // Historical positions
+    type?: string; // Device type (AP, Client, Bridge, Unknown)
+    deviceId?: string; // Device identifier
   };
 }
 

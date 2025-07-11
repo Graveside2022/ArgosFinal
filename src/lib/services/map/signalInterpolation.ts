@@ -10,6 +10,7 @@ export interface InterpolationPoint {
   lon: number;
   intensity: number;
   weight?: number;
+  timestamp: number;
 }
 
 export interface InterpolationConfig {

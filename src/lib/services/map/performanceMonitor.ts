@@ -4,11 +4,13 @@
  */
 
 export interface PerformanceMetrics {
+  [key: string]: number | undefined; // Allow string indexing
   fps: number;
   frameTime: number;
   memoryUsage: number;
   renderTime: number;
   interpolationTime: number;
+  gridProcessingTime?: number;
   pointCount: number;
   layerCount: number;
   timestamp: number;
@@ -30,6 +32,7 @@ export class PerformanceMonitor {
     memoryUsage: 0,
     renderTime: 0,
     interpolationTime: 0,
+    gridProcessingTime: 0,
     pointCount: 0,
     layerCount: 0,
     timestamp: Date.now()

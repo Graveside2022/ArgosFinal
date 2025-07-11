@@ -3,7 +3,7 @@
  * High-level service for managing Kismet operations with real-time streaming
  */
 
-import { writable, derived, type Readable, type Writable } from 'svelte/store';
+import { writable, derived, get, type Readable, type Writable } from 'svelte/store';
 import { kismetAPI } from '../api';
 import { KismetWebSocketClient } from '../websocket/kismet';
 import type {
@@ -211,11 +211,8 @@ class KismetService {
 	 */
 	async getLogs(lines: number = 100): Promise<string[]> {
 		try {
-			// @ts-expect-error - getServiceLogs method not defined in API type
-			const logs = await (
-				kismetAPI as unknown as { getServiceLogs: (lines: number) => Promise<string[]> }
-			).getServiceLogs(lines);
-			return logs;
+			const result = await kismetAPI.getLogs({ lines });
+			return result.logs;
 		} catch (error) {
 			this.handleError('Failed to get service logs', error);
 			throw error;
@@ -227,15 +224,7 @@ class KismetService {
 	 */
 	async executeScript(scriptName: string, args?: string[]): Promise<unknown> {
 		try {
-			// @ts-expect-error - executeScript method not defined in API type
-			const result = await (
-				kismetAPI as unknown as {
-					executeScript: (
-						scriptName: string,
-						args?: string[]
-					) => Promise<{ success: boolean; message?: string; data?: unknown }>;
-				}
-			).executeScript(scriptName, args);
+			const result = await kismetAPI.runScript(scriptName, args);
 
 			// Refresh scripts list in case status changed
 			await this.loadScripts();
@@ -271,9 +260,7 @@ class KismetService {
 	 * Get filtered devices
 	 */
 	getFilteredDevices(): KismetDevice[] {
-		let currentState!: KismetServiceState;
-		this.state.subscribe((s) => (currentState = s))();
-
+		const currentState = get(this.state);
 		const { devices, filters } = currentState;
 
 		if (filters.length === 0) {
@@ -405,62 +392,30 @@ class KismetService {
 			this.websocket = new KismetWebSocketClient();
 
 			// Handle connection events
-			this.websocket.on('connect', () => {
+			this.websocket.on('open', () => {
 				// console.info('Kismet WebSocket connected');
 				this.reconnectAttempts = 0;
 
 				// Apply any existing filters
-				let currentState: KismetServiceState;
-				this.state.subscribe((s) => (currentState = s))();
+				const currentState = get(this.state);
 				if (currentState.filters.length > 0) {
-					this.websocket?.send('apply_filters', { filters: currentState.filters });
+					this.websocket?.send({ command: 'apply_filters', filters: currentState.filters });
 				}
 			});
 
-			this.websocket.on('disconnect', () => {
+			this.websocket.on('close', () => {
 				// console.info('Kismet WebSocket disconnected');
 				void this.handleReconnect();
 			});
 
-			this.websocket.on('error', (error) => {
-				console.error('Kismet WebSocket error:', error);
-				this.updateState({ error: (error as Error).message });
+			this.websocket.on('error', (event) => {
+				console.error('Kismet WebSocket error:', event.error);
+				this.updateState({ error: event.error?.message || 'WebSocket error' });
 			});
 
-			// Handle data events
-			this.websocket.on('device_new', (device: KismetDevice) => {
-				this.state.update((state) => ({
-					...state,
-					devices: [...state.devices, device],
-					lastUpdate: Date.now()
-				}));
-			});
-
-			this.websocket.on('device_update', (device: KismetDevice) => {
-				this.state.update((state) => ({
-					...state,
-					devices: state.devices.map((d) =>
-						d.mac === device.mac ? { ...d, ...device } : d
-					),
-					lastUpdate: Date.now()
-				}));
-			});
-
-			this.websocket.on('device_remove', (mac: string) => {
-				this.state.update((state) => ({
-					...state,
-					devices: state.devices.filter((d) => d.mac !== mac),
-					lastUpdate: Date.now()
-				}));
-			});
-
-			this.websocket.on('stats_update', (stats: KismetStats) => {
-				this.updateState({ stats });
-			});
-
-			this.websocket.on('status_update', (status: KismetStatus) => {
-				this.updateState({ status });
-			});
+			// Note: The KismetWebSocketClient handles device updates internally
+			// and updates the kismetStore directly. We'll sync with the store
+			// through our polling mechanism instead of WebSocket events.
 
 			// Connect
 			void this.websocket.connect();
@@ -540,8 +495,6 @@ class KismetService {
 	 */
 	private async updateDevices(): Promise<void> {
 		try {
-			let _currentState: KismetServiceState;
-			this.state.subscribe((s) => (_currentState = s))();
 
 			const result = await kismetAPI.getDevices({
 				limit: 1000

@@ -9,7 +9,7 @@ export const GET: RequestHandler = () => {
 
 		return json({
 			connected: status.state !== 'idle',
-			sweeping: status.state === 'sweeping',
+			sweeping: status.state === 'running',
 			deviceInfo: null, // Not available in current implementation
 			currentFrequency: status.currentFrequency || null,
 			sweepConfig: {

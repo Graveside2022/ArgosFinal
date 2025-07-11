@@ -205,9 +205,9 @@ class SystemHealthMonitor {
           percentage: (data.disk.used / data.disk.total) * 100
         },
         network: {
-          rx: data.network.rx || 0,
-          tx: data.network.tx || 0,
-          errors: data.network.errors || 0
+          rx: data.network?.rx || 0,
+          tx: data.network?.tx || 0,
+          errors: data.network?.errors || 0
         }
       };
     } catch (error) {

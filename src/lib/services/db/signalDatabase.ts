@@ -5,6 +5,7 @@
 
 import type { SignalMarker } from '$lib/stores/map/signals';
 import type { NetworkEdge } from '$lib/services/map/networkAnalyzer';
+import type { SignalSource, DeviceRecord as SharedDeviceRecord } from '$lib/types/shared';
 
 export interface SignalRecord {
 	id: string;
@@ -20,19 +21,8 @@ export interface SignalRecord {
 	metadata?: Record<string, unknown>;
 }
 
-export interface DeviceRecord {
-	id: string;
-	type: string;
-	firstSeen: number;
-	lastSeen: number;
-	avgPower: number;
-	freqMin: number;
-	freqMax: number;
-	signalCount: number;
-	lastLat: number;
-	lastLon: number;
-	metadata?: Record<string, unknown>;
-}
+// Use the shared DeviceRecord type for consistency
+export type DeviceRecord = SharedDeviceRecord;
 
 export interface RelationshipRecord {
 	id: string;
@@ -499,13 +489,14 @@ class SignalDatabase {
 			power: record.power,
 			frequency: record.frequency,
 			timestamp: record.timestamp,
-			source: (record.source === 'kismet' ||
-			record.source === 'hackrf' ||
-			record.source === 'rtl-sdr'
-				? record.source
-				: 'other') as 'kismet' | 'hackrf' | 'rtl-sdr' | 'other',
+			source: this.normalizeSignalSource(record.source),
 			metadata: (record.metadata || {}) as Record<string, unknown>
 		};
+	}
+
+	private normalizeSignalSource(source: string): SignalSource {
+		const validSources: SignalSource[] = ['hackrf', 'kismet', 'manual', 'rtl-sdr', 'other'];
+		return validSources.includes(source as SignalSource) ? (source as SignalSource) : 'other';
 	}
 
 	private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {

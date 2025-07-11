@@ -68,7 +68,11 @@ export const GET: RequestHandler = () => {
           
           // Only log if it's not a normal close
           if (error instanceof Error && !error.message.includes('Controller is already closed')) {
-            logDebug(`SSE connection ${connectionId} closed with error`, error);
+            logDebug(`SSE connection ${connectionId} closed with error`, {
+              message: error.message,
+              stack: error.stack,
+              name: error.name
+            });
           }
         }
       };

@@ -19,18 +19,19 @@ function createNotificationStore() {
                 ...notification,
                 id,
                 timestamp: new Date(),
-                duration: notification.duration || 5000
+                duration: notification.duration ?? 5000
             };
 
             update(notifications => [...notifications, newNotification]);
 
             // Auto-remove after duration
-            if (newNotification.duration > 0) {
+            const duration = newNotification.duration ?? 5000;
+            if (duration > 0) {
                 setTimeout(() => {
                     update(notifications => 
                         notifications.filter(n => n.id !== id)
                     );
-                }, newNotification.duration);
+                }, duration);
             }
         },
         remove: (id: string) => {

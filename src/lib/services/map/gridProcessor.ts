@@ -60,9 +60,17 @@ export interface GridProcessResult {
   gridSize: number;
 }
 
+export interface GridStatsResult {
+  totalSignals: number;
+  avgPower: number;
+  maxPower: number;
+  minPower: number;
+  processingTime: number;
+}
+
 export class GridProcessor {
   private worker: Worker | null = null;
-  private pendingCallbacks = new Map<string, (result: GridProcessResult | { error: string }) => void>();
+  private pendingCallbacks = new Map<string, (result: GridProcessResult | GridStatsResult | { error: string }) => void>();
   private requestId = 0;
 
   constructor() {
@@ -82,7 +90,9 @@ export class GridProcessor {
           console.error('Grid processor error:', error);
           const callback = this.pendingCallbacks.get(requestId);
           if (callback) {
-            callback({ error: error });
+            // Validate error is a string
+            const errorMessage = typeof error === 'string' ? error : String(error);
+            callback({ error: errorMessage });
             this.pendingCallbacks.delete(requestId);
           }
           return;
@@ -91,7 +101,16 @@ export class GridProcessor {
         // Find and execute callback based on requestId
         const callback = this.pendingCallbacks.get(requestId);
         if (callback && (type === 'gridProcessed' || type === 'hexGridProcessed' || type === 'statsCalculated')) {
-          callback(data);
+          // Validate data based on type
+          if (data && typeof data === 'object' && !('error' in data)) {
+            if (type === 'statsCalculated') {
+              callback(data as GridStatsResult);
+            } else {
+              callback(data as GridProcessResult);
+            }
+          } else {
+            callback({ error: 'Invalid data received from worker' });
+          }
           this.pendingCallbacks.delete(requestId);
         }
       });
@@ -178,7 +197,7 @@ export class GridProcessor {
   /**
    * Calculate overall statistics for signals
    */
-  async calculateStats(signals: GridSignal[], bounds: GridBounds): Promise<{ totalSignals: number; avgPower: number; maxPower: number; minPower: number; processingTime: number }> {
+  async calculateStats(signals: GridSignal[], bounds: GridBounds): Promise<GridStatsResult> {
     return new Promise((resolve, reject) => {
       if (!this.worker) {
         reject(new Error('WebWorker not available'));
@@ -190,7 +209,7 @@ export class GridProcessor {
         if ('error' in result) {
           reject(new Error(result.error));
         } else {
-          resolve(result as { totalSignals: number; avgPower: number; maxPower: number; minPower: number; processingTime: number });
+          resolve(result as GridStatsResult);
         }
       });
       

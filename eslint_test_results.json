@@ -1,0 +1,1872 @@
+[
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/tests/e2e/user-flows.test.ts",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/tests/fixtures/mock-data.ts",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/tests/helpers/setup.ts",
+		"messages": [
+			{
+				"ruleId": "@typescript-eslint/no-unnecessary-type-assertion",
+				"severity": 2,
+				"message": "This assertion is unnecessary since it does not change the type of the expression.",
+				"line": 9,
+				"column": 12,
+				"nodeType": "TSAsExpression",
+				"messageId": "unnecessaryAssertion",
+				"endLine": 9,
+				"endColumn": 27,
+				"fix": { "range": [282, 292], "text": "" }
+			}
+		],
+		"suppressedMessages": [],
+		"errorCount": 1,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 1,
+		"fixableWarningCount": 0,
+		"source": "import { beforeAll, afterEach, afterAll, vi } from 'vitest';\nimport '@testing-library/jest-dom';\n\n// Mock window.matchMedia\nObject.defineProperty(window, 'matchMedia', {\n  writable: true,\n  value: vi.fn().mockImplementation((query: string) => ({\n    matches: false,\n    media: query as string,\n    onchange: null,\n    addListener: vi.fn(),\n    removeListener: vi.fn(),\n    addEventListener: vi.fn(),\n    removeEventListener: vi.fn(),\n    dispatchEvent: vi.fn(),\n  })),\n});\n\n// Mock IntersectionObserver\nglobal.IntersectionObserver = vi.fn().mockImplementation(() => ({\n  observe: vi.fn(),\n  disconnect: vi.fn(),\n  unobserve: vi.fn(),\n}));\n\n// Mock ResizeObserver\nglobal.ResizeObserver = vi.fn().mockImplementation(() => ({\n  observe: vi.fn(),\n  disconnect: vi.fn(),\n  unobserve: vi.fn(),\n}));\n\n// Clean up after each test\nafterEach(() => {\n  vi.clearAllMocks();\n});\n\n// Performance monitoring\nlet performanceEntries: PerformanceEntry[] = [];\n\nbeforeAll(() => {\n  // Start performance monitoring\n  if (typeof window !== 'undefined' && window.performance) {\n    const observer = new PerformanceObserver((list) => {\n      performanceEntries.push(...list.getEntries());\n    });\n    observer.observe({ entryTypes: ['measure', 'navigation'] });\n  }\n});\n\nafterAll(() => {\n  // Report performance metrics\n  if (performanceEntries.length > 0) {\n    console.error('\\n=== Performance Metrics ===');\n    performanceEntries.forEach(entry => {\n      console.error(`${entry.name}: ${entry.duration.toFixed(2)}ms`);\n    });\n  }\n});\n\n// Global test utilities\nexport const testUtils = {\n  async waitForElement(selector: string, timeout = 5000): Promise<Element> {\n    const startTime = Date.now();\n    while (Date.now() - startTime < timeout) {\n      const element = document.querySelector(selector);\n      if (element) return element;\n      await new Promise(resolve => setTimeout(resolve, 100));\n    }\n    throw new Error(`Element ${selector} not found within ${timeout}ms`);\n  },\n\n  async waitForWebSocket(url: string, timeout = 5000): Promise<WebSocket> {\n    return new Promise((resolve, reject) => {\n      const ws = new WebSocket(url);\n      const timer = setTimeout(() => {\n        ws.close();\n        reject(new Error(`WebSocket connection to ${url} timed out`));\n      }, timeout);\n\n      ws.onopen = () => {\n        clearTimeout(timer);\n        resolve(ws);\n      };\n\n      ws.onerror = () => {\n        clearTimeout(timer);\n        reject(new Error(`WebSocket connection to ${url} failed`));\n      };\n    });\n  },\n\n  measurePerformance(name: string, fn: () => void | Promise<void>) {\n    return async () => {\n      performance.mark(`${name}-start`);\n      await fn();\n      performance.mark(`${name}-end`);\n      performance.measure(name, `${name}-start`, `${name}-end`);\n    };\n  },\n};",
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/tests/helpers/test-server.ts",
+		"messages": [
+			{
+				"ruleId": "@typescript-eslint/no-unused-vars",
+				"severity": 2,
+				"message": "'_error' is defined but never used.",
+				"line": 161,
+				"column": 18,
+				"nodeType": null,
+				"messageId": "unusedVar",
+				"endLine": 161,
+				"endColumn": 24
+			}
+		],
+		"suppressedMessages": [
+			{
+				"ruleId": "@typescript-eslint/no-base-to-string",
+				"severity": 2,
+				"message": "'data' may use Object's default stringification format ('[object Object]') when stringified.",
+				"line": 121,
+				"column": 38,
+				"nodeType": "Identifier",
+				"messageId": "baseToString",
+				"endLine": 121,
+				"endColumn": 42,
+				"suppressions": [{ "kind": "directive", "justification": "" }]
+			}
+		],
+		"errorCount": 1,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"source": "import { createServer } from 'http';\nimport { WebSocketServer } from 'ws';\nimport { mockWebSocketMessages, mockSpectrumData, mockDevices } from '../fixtures/mock-data';\n\nexport class TestServer {\n  private httpServer: import('http').Server | null = null;\n  private wsServer: WebSocketServer | null = null;\n  private port: number;\n\n  constructor(port = 8093) {\n    this.port = port;\n  }\n\n  async start() {\n    this.httpServer = createServer((req, res) => {\n      // Handle API endpoints for testing\n      const url = new URL(req.url || '', `http://localhost:${this.port}`);\n      \n      res.setHeader('Content-Type', 'application/json');\n      res.setHeader('Access-Control-Allow-Origin', '*');\n      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');\n      res.setHeader('Access-Control-Allow-Headers', 'Content-Type');\n\n      if (req.method === 'OPTIONS') {\n        res.writeHead(200);\n        res.end();\n        return;\n      }\n\n      switch (url.pathname) {\n        case '/api/spectrum': {\n          res.writeHead(200);\n          res.end(JSON.stringify({\n            frequencies: Array.from(mockSpectrumData.frequencies),\n            amplitudes: Array.from(mockSpectrumData.amplitudes),\n          }));\n          break;\n        }\n\n        case '/api/devices': {\n          const minSignal = url.searchParams.get('minSignal');\n          let devices = mockDevices;\n          if (minSignal) {\n            devices = devices.filter(d => d.signal >= parseInt(minSignal));\n          }\n          res.writeHead(200);\n          res.end(JSON.stringify(devices));\n          break;\n        }\n\n        case '/api/system/status':\n          res.writeHead(200);\n          res.end(JSON.stringify({\n            hackrf: { connected: true },\n            gps: { connected: true },\n            websocket: { connected: true },\n            uptime: 3600000,\n          }));\n          break;\n\n        case '/api/sweep/start':\n          if (req.method === 'POST') {\n            res.writeHead(200);\n            res.end(JSON.stringify({\n              sweepId: 'test-sweep-001',\n              status: 'started',\n            }));\n          } else {\n            res.writeHead(405);\n            res.end();\n          }\n          break;\n\n        case '/api/sweep/status':\n          res.writeHead(200);\n          res.end(JSON.stringify({\n            active: true,\n            progress: 45,\n            sweepId: 'test-sweep-001',\n          }));\n          break;\n\n        case '/api/sweep/stop':\n          if (req.method === 'POST') {\n            res.writeHead(200);\n            res.end(JSON.stringify({ status: 'stopped' }));\n          } else {\n            res.writeHead(405);\n            res.end();\n          }\n          break;\n\n        default:\n          if (url.pathname.startsWith('/api/devices/')) {\n            const deviceId = url.pathname.split('/').pop();\n            const device = mockDevices.find(d => d.id === deviceId);\n            if (device) {\n              res.writeHead(200);\n              res.end(JSON.stringify(device));\n            } else {\n              res.writeHead(404);\n              res.end(JSON.stringify({ error: 'Device not found' }));\n            }\n          } else {\n            res.writeHead(404);\n            res.end(JSON.stringify({ error: 'Not found' }));\n          }\n      }\n    });\n\n    this.wsServer = new WebSocketServer({ server: this.httpServer });\n\n    this.wsServer.on('connection', (ws) => {\n      // Send initial connection message\n      ws.send(JSON.stringify({ type: 'connected', timestamp: Date.now() }));\n\n      // Handle incoming messages\n      ws.on('message', (data: import('ws').Data) => {\n        try {\n          // eslint-disable-next-line @typescript-eslint/no-base-to-string\n          const message = JSON.parse(data.toString()) as Record<string, unknown>;\n          \n          switch (message.type) {\n            case 'getSpectrum':\n              ws.send(JSON.stringify({\n                type: 'spectrum',\n                data: mockWebSocketMessages.spectrumUpdate.data,\n              }));\n              break;\n\n            case 'ping':\n              ws.send(JSON.stringify({ type: 'pong' }));\n              break;\n\n            case 'request':\n              ws.send(JSON.stringify({\n                type: 'response',\n                requestId: message.requestId,\n                status: 'ok',\n              }));\n              break;\n\n            case 'spectrum:request':\n              ws.send(JSON.stringify({\n                type: 'spectrum:response',\n                timestamp: message.timestamp,\n                data: mockSpectrumData,\n              }));\n              break;\n\n            case 'echo':\n              ws.send(JSON.stringify(message));\n              break;\n\n            default:\n              ws.send(JSON.stringify({\n                type: 'error',\n                message: 'Unknown message type',\n              }));\n          }\n        } catch (_error) {\n          ws.send(JSON.stringify({\n            type: 'error',\n            message: 'Invalid JSON',\n          }));\n        }\n      });\n\n      // Simulate periodic spectrum updates\n      const intervalId = setInterval(() => {\n        if (ws.readyState === ws.OPEN) {\n          ws.send(JSON.stringify(mockWebSocketMessages.spectrumUpdate));\n        }\n      }, 1000);\n\n      ws.on('close', () => {\n        clearInterval(intervalId);\n      });\n    });\n\n    return new Promise<void>((resolve) => {\n      this.httpServer?.listen(this.port, () => {\n        console.error(`Test server running on port ${this.port}`);\n        resolve();\n      });\n    });\n  }\n\n  async stop() {\n    if (this.wsServer) {\n      this.wsServer.clients.forEach(client => client.close());\n      this.wsServer.close();\n    }\n    \n    return new Promise<void>((resolve) => {\n      this.httpServer?.close(() => {\n        console.error('Test server stopped');\n        resolve();\n      });\n    });\n  }\n\n  getUrl() {\n    return `http://localhost:${this.port}`;\n  }\n\n  getWsUrl() {\n    return `ws://localhost:${this.port}`;\n  }\n}",
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/tests/helpers/visual-helpers.ts",
+		"messages": [
+			{
+				"ruleId": "@typescript-eslint/no-unused-vars",
+				"severity": 2,
+				"message": "'_error' is defined but never used.",
+				"line": 164,
+				"column": 14,
+				"nodeType": null,
+				"messageId": "unusedVar",
+				"endLine": 164,
+				"endColumn": 20
+			}
+		],
+		"suppressedMessages": [],
+		"errorCount": 1,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"source": "import fs from 'fs/promises';\nimport path from 'path';\nimport { PNG } from 'pngjs';\nimport type { PNG as PNGType } from 'pngjs';\n\n// Type definition for pixelmatch library\ninterface PixelmatchOptions {\n  threshold?: number;\n  includeAA?: boolean;\n  alpha?: number;\n  aaColor?: [number, number, number];\n  diffColor?: [number, number, number];\n  diffColorAlt?: [number, number, number];\n}\n\ntype PixelmatchFunction = (\n  img1: Uint8Array | Buffer,\n  img2: Uint8Array | Buffer,\n  output: Uint8Array | Buffer | null,\n  width: number,\n  height: number,\n  options?: PixelmatchOptions\n) => number;\n\n// Import pixelmatch with proper typing\nimport pixelmatchImport from 'pixelmatch';\nconst pixelmatch = pixelmatchImport as unknown as PixelmatchFunction;\n\n// Type-safe PNG interface to avoid 'any' usage\ninterface PNGSync {\n  read: (buffer: Buffer) => PNGType;\n  write: (png: PNGType) => Buffer;\n}\n\ninterface PNGConstructor {\n  new(options: { width: number; height: number }): PNGType;\n  sync: PNGSync;\n}\n\ninterface SafePNGType extends PNGType {\n  width: number;\n  height: number;\n  data: Buffer;\n}\n\n// Type guard for PNG constructor (unused but kept for potential future use)\nfunction _isPNGConstructor(obj: unknown): obj is PNGConstructor {\n  return typeof obj === 'function' && obj !== null && typeof obj === 'object';\n}\n\nexport interface VisualComparisonResult {\n  passed: boolean;\n  diffPixels: number;\n  diffPercentage: number;\n  diffImagePath?: string;\n}\n\nexport class VisualTestHelper {\n  private baselineDir: string;\n  private screenshotDir: string;\n  private diffDir: string;\n\n  constructor(testDir = 'tests/visual') {\n    this.baselineDir = path.join(testDir, 'baselines');\n    this.screenshotDir = path.join(testDir, 'screenshots');\n    this.diffDir = path.join(testDir, 'diffs');\n  }\n\n  async ensureDirectories() {\n    await fs.mkdir(this.baselineDir, { recursive: true });\n    await fs.mkdir(this.screenshotDir, { recursive: true });\n    await fs.mkdir(this.diffDir, { recursive: true });\n  }\n\n  async compareImages(\n    imageName: string,\n    threshold = 0.1\n  ): Promise<VisualComparisonResult> {\n    const baselinePath = path.join(this.baselineDir, `${imageName}.png`);\n    const screenshotPath = path.join(this.screenshotDir, `${imageName}.png`);\n    const diffPath = path.join(this.diffDir, `${imageName}-diff.png`);\n\n    try {\n      const baselineBuffer = await fs.readFile(baselinePath);\n      const screenshotBuffer = await fs.readFile(screenshotPath);\n      \n      // Use type assertion to safely access PNG functionality\n      const PNGClass = PNG as unknown as PNGConstructor;\n      const baseline = PNGClass.sync.read(baselineBuffer) as SafePNGType;\n      const screenshot = PNGClass.sync.read(screenshotBuffer) as SafePNGType;\n\n      if (baseline.width !== screenshot.width || baseline.height !== screenshot.height) {\n        return {\n          passed: false,\n          diffPixels: -1,\n          diffPercentage: 100,\n          diffImagePath: undefined,\n        };\n      }\n\n      const { width, height } = baseline;\n      const diff = new PNGClass({ width, height }) as SafePNGType;\n\n      const diffPixels = pixelmatch(\n        baseline.data,\n        screenshot.data,\n        diff.data,\n        width,\n        height,\n        { threshold }\n      );\n\n      const totalPixels = width * height;\n      const diffPercentage = (diffPixels / totalPixels) * 100;\n\n      if (diffPixels > 0) {\n        const diffBuffer = PNGClass.sync.write(diff);\n        await fs.writeFile(diffPath, diffBuffer);\n      }\n\n      return {\n        passed: diffPercentage < 0.1, // Less than 0.1% difference for pixel-perfect\n        diffPixels: diffPixels,\n        diffPercentage,\n        diffImagePath: diffPixels > 0 ? diffPath : undefined,\n      };\n    } catch (error: unknown) {\n      // If baseline doesn't exist, create it\n      if ((error as { code?: string }).code === 'ENOENT' && !(await this.fileExists(baselinePath))) {\n        await fs.copyFile(screenshotPath, baselinePath);\n        console.error(`Created baseline for ${imageName}`);\n        return {\n          passed: true,\n          diffPixels: 0,\n          diffPercentage: 0,\n        };\n      }\n      throw error;\n    }\n  }\n\n  async generateBaseline(imageName: string, imageData: Buffer) {\n    const baselinePath = path.join(this.baselineDir, `${imageName}.png`);\n    await fs.writeFile(baselinePath, imageData);\n  }\n\n  async saveScreenshot(imageName: string, imageData: Buffer) {\n    const screenshotPath = path.join(this.screenshotDir, `${imageName}.png`);\n    await fs.writeFile(screenshotPath, imageData);\n    return screenshotPath;\n  }\n\n  async cleanupDiffs() {\n    const files = await fs.readdir(this.diffDir);\n    await Promise.all(\n      files.map(file => fs.unlink(path.join(this.diffDir, file)))\n    );\n  }\n\n  private async fileExists(filePath: string): Promise<boolean> {\n    try {\n      await fs.access(filePath);\n      return true;\n    } catch (_error) {\n      return false;\n    }\n  }\n\n  // Helper for generating HTML report\n  async generateReport(results: Map<string, VisualComparisonResult>) {\n    const reportPath = path.join('tests/visual', 'report.html');\n    \n    const html = `\n<!DOCTYPE html>\n<html>\n<head>\n  <title>Visual Regression Report</title>\n  <style>\n    body { font-family: Arial, sans-serif; margin: 20px; }\n    .test { margin-bottom: 30px; border: 1px solid #ddd; padding: 15px; }\n    .passed { background-color: #d4edda; }\n    .failed { background-color: #f8d7da; }\n    .images { display: flex; gap: 20px; margin-top: 15px; }\n    .image-container { flex: 1; }\n    img { max-width: 100%; border: 1px solid #ccc; }\n    h3 { margin-top: 0; }\n    .stats { margin: 10px 0; }\n  </style>\n</head>\n<body>\n  <h1>Visual Regression Test Report</h1>\n  <p>Generated: ${new Date().toISOString()}</p>\n  \n  ${Array.from(results.entries()).map(([name, result]) => `\n    <div class=\"test ${result.passed ? 'passed' : 'failed'}\">\n      <h3>${name}</h3>\n      <div class=\"stats\">\n        <strong>Status:</strong> ${result.passed ? 'PASSED' : 'FAILED'}<br>\n        <strong>Diff Pixels:</strong> ${result.diffPixels}<br>\n        <strong>Diff Percentage:</strong> ${result.diffPercentage.toFixed(3)}%\n      </div>\n      ${!result.passed ? `\n        <div class=\"images\">\n          <div class=\"image-container\">\n            <h4>Baseline</h4>\n            <img src=\"baselines/${name}.png\" alt=\"Baseline\">\n          </div>\n          <div class=\"image-container\">\n            <h4>Current</h4>\n            <img src=\"screenshots/${name}.png\" alt=\"Current\">\n          </div>\n          ${result.diffImagePath ? `\n            <div class=\"image-container\">\n              <h4>Difference</h4>\n              <img src=\"diffs/${name}-diff.png\" alt=\"Difference\">\n            </div>\n          ` : ''}\n        </div>\n      ` : ''}\n    </div>\n  `).join('')}\n</body>\n</html>\n    `;\n\n    await fs.writeFile(reportPath, html);\n    return reportPath;\n  }\n}\n\n// CSS verification helper\nexport class CSSTestHelper {\n  static async verifyCSSProperty(\n    page: import('@playwright/test').Page,\n    selector: string,\n    property: string,\n    expectedValue: string\n  ): Promise<boolean> {\n    const actualValue = await page.evaluate(\n      (sel: string, prop: string) => {\n        const element = document.querySelector(sel);\n        if (!element) return null;\n        return window.getComputedStyle(element).getPropertyValue(prop);\n      },\n      selector,\n      property\n    );\n\n    return actualValue === expectedValue;\n  }\n\n  static async verifyLayout(\n    page: import('@playwright/test').Page,\n    selector: string,\n    expectedLayout: {\n      width?: number;\n      height?: number;\n      x?: number;\n      y?: number;\n    }\n  ): Promise<boolean> {\n    const boundingBox = await page.locator(selector).boundingBox();\n    if (!boundingBox) return false;\n\n    let passed = true;\n    if (expectedLayout.width !== undefined) {\n      passed = passed && Math.abs(boundingBox.width - expectedLayout.width) < 1;\n    }\n    if (expectedLayout.height !== undefined) {\n      passed = passed && Math.abs(boundingBox.height - expectedLayout.height) < 1;\n    }\n    if (expectedLayout.x !== undefined) {\n      passed = passed && Math.abs(boundingBox.x - expectedLayout.x) < 1;\n    }\n    if (expectedLayout.y !== undefined) {\n      passed = passed && Math.abs(boundingBox.y - expectedLayout.y) < 1;\n    }\n\n    return passed;\n  }\n}",
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/tests/integration/api.test.ts",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/tests/integration/app.test.ts",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/tests/integration/websocket.test.ts",
+		"messages": [],
+		"suppressedMessages": [
+			{
+				"ruleId": "@typescript-eslint/no-non-null-assertion",
+				"severity": 1,
+				"message": "Forbidden non-null assertion.",
+				"line": 27,
+				"column": 9,
+				"nodeType": "TSNonNullExpression",
+				"messageId": "noNonNull",
+				"endLine": 27,
+				"endColumn": 12,
+				"suggestions": [
+					{
+						"messageId": "suggestOptionalChain",
+						"fix": { "range": [877, 878], "text": "?" },
+						"desc": "Consider using the optional chain operator `?.` instead. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator."
+					}
+				],
+				"suppressions": [{ "kind": "directive", "justification": "" }]
+			},
+			{
+				"ruleId": "@typescript-eslint/no-non-null-assertion",
+				"severity": 1,
+				"message": "Forbidden non-null assertion.",
+				"line": 46,
+				"column": 9,
+				"nodeType": "TSNonNullExpression",
+				"messageId": "noNonNull",
+				"endLine": 46,
+				"endColumn": 12,
+				"suggestions": [
+					{
+						"messageId": "suggestOptionalChain",
+						"fix": { "range": [1542, 1543], "text": "?" },
+						"desc": "Consider using the optional chain operator `?.` instead. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator."
+					}
+				],
+				"suppressions": [{ "kind": "directive", "justification": "" }]
+			},
+			{
+				"ruleId": "@typescript-eslint/no-non-null-assertion",
+				"severity": 1,
+				"message": "Forbidden non-null assertion.",
+				"line": 88,
+				"column": 9,
+				"nodeType": "TSNonNullExpression",
+				"messageId": "noNonNull",
+				"endLine": 88,
+				"endColumn": 12,
+				"suggestions": [
+					{
+						"messageId": "suggestOptionalChain",
+						"fix": { "range": [2830, 2831], "text": "?" },
+						"desc": "Consider using the optional chain operator `?.` instead. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator."
+					}
+				],
+				"suppressions": [{ "kind": "directive", "justification": "" }]
+			},
+			{
+				"ruleId": "@typescript-eslint/no-non-null-assertion",
+				"severity": 1,
+				"message": "Forbidden non-null assertion.",
+				"line": 113,
+				"column": 9,
+				"nodeType": "TSNonNullExpression",
+				"messageId": "noNonNull",
+				"endLine": 113,
+				"endColumn": 12,
+				"suggestions": [
+					{
+						"messageId": "suggestOptionalChain",
+						"fix": { "range": [3691, 3692], "text": "?" },
+						"desc": "Consider using the optional chain operator `?.` instead. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator."
+					}
+				],
+				"suppressions": [{ "kind": "directive", "justification": "" }]
+			},
+			{
+				"ruleId": "@typescript-eslint/no-non-null-assertion",
+				"severity": 1,
+				"message": "Forbidden non-null assertion.",
+				"line": 174,
+				"column": 9,
+				"nodeType": "TSNonNullExpression",
+				"messageId": "noNonNull",
+				"endLine": 174,
+				"endColumn": 12,
+				"suggestions": [
+					{
+						"messageId": "suggestOptionalChain",
+						"fix": { "range": [5507, 5508], "text": "?" },
+						"desc": "Consider using the optional chain operator `?.` instead. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator."
+					}
+				],
+				"suppressions": [{ "kind": "directive", "justification": "" }]
+			},
+			{
+				"ruleId": "@typescript-eslint/no-non-null-assertion",
+				"severity": 1,
+				"message": "Forbidden non-null assertion.",
+				"line": 205,
+				"column": 9,
+				"nodeType": "TSNonNullExpression",
+				"messageId": "noNonNull",
+				"endLine": 205,
+				"endColumn": 12,
+				"suggestions": [
+					{
+						"messageId": "suggestOptionalChain",
+						"fix": { "range": [6552, 6553], "text": "?" },
+						"desc": "Consider using the optional chain operator `?.` instead. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator."
+					}
+				],
+				"suppressions": [{ "kind": "directive", "justification": "" }]
+			}
+		],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/tests/load/dataVolumes.test.ts",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/tests/performance/benchmarks.test.ts",
+		"messages": [
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 72,
+				"column": 9,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 72,
+				"endColumn": 14
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 120,
+				"column": 9,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 120,
+				"endColumn": 14
+			}
+		],
+		"suppressedMessages": [],
+		"errorCount": 2,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"source": "import { describe, it, expect } from 'vitest';\nimport { performance } from 'perf_hooks';\nimport { testUtils } from '../helpers/setup';\n\nconst API_BASE_URL = process.env.TEST_URL || 'http://localhost:5173';\nconst WS_URL = process.env.WS_URL || 'ws://localhost:8092';\n\ndescribe('Performance Benchmarks', () => {\n  describe('API Response Time Benchmarks', () => {\n    const endpoints = [\n      { name: 'Device List', url: '/api/devices', target: 100 },\n      { name: 'Spectrum Data', url: '/api/spectrum', target: 150 },\n      { name: 'System Status', url: '/api/system/status', target: 50 },\n      { name: 'Sweep Status', url: '/api/sweep/status', target: 50 },\n    ];\n\n    endpoints.forEach(({ name, url, target }) => {\n      it(`${name} should respond within ${target}ms`, async () => {\n        const times: number[] = [];\n        const iterations = 10;\n\n        for (let i = 0; i < iterations; i++) {\n          const start = performance.now();\n          const response = await fetch(`${API_BASE_URL}${url}`);\n          const end = performance.now();\n          \n          expect(response.status).toBe(200);\n          times.push(end - start);\n        }\n\n        const avgTime = times.reduce((a, b) => a + b, 0) / times.length;\n        const p95Time = times.sort((a, b) => a - b)[Math.floor(times.length * 0.95)];\n\n        console.warn(`${name} - Avg: ${avgTime.toFixed(2)}ms, P95: ${p95Time.toFixed(2)}ms`);\n        \n        expect(avgTime).toBeLessThan(target);\n        expect(p95Time).toBeLessThan(target * 1.5); // P95 can be 50% higher\n      });\n    });\n\n    it('should handle concurrent API requests efficiently', async () => {\n      const concurrentRequests = 50;\n      const start = performance.now();\n\n      const requests = Array(concurrentRequests).fill(null).map((_, index) => \n        fetch(`${API_BASE_URL}/api/devices?page=${index}`)\n      );\n\n      const responses = await Promise.all(requests);\n      const end = performance.now();\n      const totalTime = end - start;\n\n      responses.forEach(response => {\n        expect(response.status).toBe(200);\n      });\n\n      const avgTimePerRequest = totalTime / concurrentRequests;\n      console.warn(`Concurrent requests - Total: ${totalTime.toFixed(2)}ms, Avg per request: ${avgTimePerRequest.toFixed(2)}ms`);\n      \n      expect(avgTimePerRequest).toBeLessThan(100); // Should benefit from concurrency\n    });\n  });\n\n  describe('WebSocket Performance Benchmarks', () => {\n    it('should handle high-frequency spectrum updates', async () => {\n      const ws = await testUtils.waitForWebSocket(WS_URL);\n      const messageCount = 1000;\n      let receivedCount = 0;\n      const latencies: number[] = [];\n\n      const messagePromise = new Promise<void>((resolve) => {\n        ws.on('message', (data: unknown) => {\n          const message = JSON.parse((data as Buffer).toString()) as { timestamp?: number };\n          if (message.timestamp) {\n            const latency = Date.now() - message.timestamp;\n            latencies.push(latency);\n          }\n          receivedCount++;\n          if (receivedCount >= messageCount) {\n            resolve();\n          }\n        });\n      });\n\n      const start = performance.now();\n      \n      // Send rapid messages\n      for (let i = 0; i < messageCount; i++) {\n        ws.send(JSON.stringify({\n          type: 'spectrum:request',\n          timestamp: Date.now(),\n        }));\n      }\n\n      await messagePromise;\n      const end = performance.now();\n      \n      ws.close();\n\n      const totalTime = end - start;\n      const messagesPerSecond = (messageCount / totalTime) * 1000;\n      const avgLatency = latencies.reduce((a, b) => a + b, 0) / latencies.length;\n      const p99Latency = latencies.sort((a, b) => a - b)[Math.floor(latencies.length * 0.99)];\n\n      console.warn(`WebSocket performance - Messages/sec: ${messagesPerSecond.toFixed(0)}, Avg latency: ${avgLatency.toFixed(2)}ms, P99 latency: ${p99Latency.toFixed(2)}ms`);\n      \n      expect(messagesPerSecond).toBeGreaterThan(100);\n      expect(avgLatency).toBeLessThan(50);\n      expect(p99Latency).toBeLessThan(100);\n    });\n\n    it('should handle large payload transfers efficiently', async () => {\n      const ws = await testUtils.waitForWebSocket(WS_URL);\n      \n      // Create large payload (1MB)\n      const largeData = new Array(1024 * 1024).fill('x').join('');\n      \n      const responsePromise = new Promise<number>((resolve) => {\n        const start = Date.now();\n        ws.on('message', (_data: unknown) => {\n          // Type assertion for WebSocket message data\n          const _message = JSON.parse((_data as Buffer).toString()) as { type?: string; data?: string };\n          resolve(Date.now() - start);\n        });\n      });\n\n      ws.send(JSON.stringify({\n        type: 'echo',\n        data: largeData,\n      }));\n\n      const transferTime = await responsePromise;\n      ws.close();\n\n      console.warn(`Large payload transfer time: ${transferTime}ms for 1MB`);\n      expect(transferTime).toBeLessThan(1000); // Should transfer 1MB in less than 1 second\n    });\n  });\n\n  describe('Memory Usage Benchmarks', () => {\n    it('should not leak memory during extended operation', async () => {\n      if (!global.gc) {\n        console.warn('Memory tests require --expose-gc flag');\n        return;\n      }\n\n      const iterations = 100;\n      const memoryUsages: number[] = [];\n\n      for (let i = 0; i < iterations; i++) {\n        // Force garbage collection\n        global.gc();\n        \n        // Record memory before operation\n        const beforeHeap = process.memoryUsage().heapUsed;\n        \n        // Perform operations\n        const responses = await Promise.all([\n          fetch(`${API_BASE_URL}/api/devices`),\n          fetch(`${API_BASE_URL}/api/spectrum`),\n          fetch(`${API_BASE_URL}/api/system/status`),\n        ]);\n\n        // Clean up\n        await Promise.all(responses.map(r => r.text())); // Consume response bodies\n        \n        // Record memory after operation\n        const afterHeap = process.memoryUsage().heapUsed;\n        memoryUsages.push(afterHeap - beforeHeap);\n        \n        // Small delay between iterations\n        await new Promise(resolve => setTimeout(resolve, 10));\n      }\n\n      // Calculate memory growth trend\n      const firstHalf = memoryUsages.slice(0, iterations / 2);\n      const secondHalf = memoryUsages.slice(iterations / 2);\n      \n      const avgFirstHalf = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;\n      const avgSecondHalf = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;\n      \n      const memoryGrowthRate = (avgSecondHalf - avgFirstHalf) / avgFirstHalf;\n      \n      console.warn(`Memory growth rate: ${(memoryGrowthRate * 100).toFixed(2)}%`);\n      expect(Math.abs(memoryGrowthRate)).toBeLessThan(0.1); // Less than 10% growth\n    });\n  });\n\n  describe('Rendering Performance Benchmarks', () => {\n    it('should render spectrum updates at 60fps', () => {\n      const targetFPS = 60;\n      const targetFrameTime = 1000 / targetFPS;\n      const frames = 100;\n      const frameTimes: number[] = [];\n\n      // Simulate spectrum rendering\n      const renderFrame = () => {\n        const start = performance.now();\n        \n        // Simulate canvas operations\n        const canvas = document.createElement('canvas');\n        const ctx = canvas.getContext('2d');\n        if (!ctx) return 0;\n        canvas.width = 1024;\n        canvas.height = 512;\n        \n        // Draw spectrum data\n        ctx.fillStyle = '#000';\n        ctx.fillRect(0, 0, canvas.width, canvas.height);\n        \n        for (let i = 0; i < 1024; i++) {\n          const amplitude = Math.random() * 512;\n          ctx.fillStyle = `hsl(${(amplitude / 512) * 120}, 100%, 50%)`;\n          ctx.fillRect(i, 512 - amplitude, 1, amplitude);\n        }\n        \n        const end = performance.now();\n        return end - start;\n      };\n\n      for (let i = 0; i < frames; i++) {\n        const frameTime = renderFrame();\n        frameTimes.push(frameTime);\n      }\n\n      const avgFrameTime = frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length;\n      const maxFrameTime = Math.max(...frameTimes);\n      const achievedFPS = 1000 / avgFrameTime;\n\n      console.warn(`Rendering performance - Avg FPS: ${achievedFPS.toFixed(1)}, Max frame time: ${maxFrameTime.toFixed(2)}ms`);\n      \n      expect(avgFrameTime).toBeLessThan(targetFrameTime);\n      expect(maxFrameTime).toBeLessThan(targetFrameTime * 2); // Allow occasional spikes\n    });\n  });\n\n  describe('Data Processing Benchmarks', () => {\n    it('should process FFT data efficiently', () => {\n      const fftSizes = [512, 1024, 2048, 4096];\n      \n      fftSizes.forEach(size => {\n        const data = new Float32Array(size).fill(0).map(() => Math.random() * 2 - 1);\n        \n        const start = performance.now();\n        \n        // Simulate FFT processing\n        for (let i = 0; i < 100; i++) {\n          // Simple magnitude calculation (real FFT would be more complex)\n          const magnitudes = new Float32Array(size / 2);\n          for (let j = 0; j < size / 2; j++) {\n            magnitudes[j] = Math.sqrt(data[j * 2] ** 2 + data[j * 2 + 1] ** 2);\n          }\n        }\n        \n        const end = performance.now();\n        const timePerFFT = (end - start) / 100;\n        \n        console.warn(`FFT size ${size} - Time per FFT: ${timePerFFT.toFixed(2)}ms`);\n        expect(timePerFFT).toBeLessThan(10); // Should process in less than 10ms\n      });\n    });\n\n    it('should filter and sort device lists efficiently', () => {\n      // Generate test data\n      const devices = Array(10000).fill(null).map((_, i) => ({\n        id: `device-${i}`,\n        name: `Device ${i}`,\n        mac: `00:11:22:33:44:${(i % 256).toString(16).padStart(2, '0')}`,\n        signal: -Math.floor(Math.random() * 60 + 40),\n        lastSeen: new Date(Date.now() - Math.random() * 86400000).toISOString(),\n        vendor: ['Apple', 'Samsung', 'Google', 'Microsoft'][i % 4],\n      }));\n\n      const operations = [\n        {\n          name: 'Filter by signal strength',\n          fn: () => devices.filter(d => d.signal > -70),\n        },\n        {\n          name: 'Sort by signal strength',\n          fn: () => [...devices].sort((a, b) => b.signal - a.signal),\n        },\n        {\n          name: 'Group by vendor',\n          fn: () => devices.reduce((acc, d) => {\n            if (!acc[d.vendor]) acc[d.vendor] = [];\n            acc[d.vendor].push(d);\n            return acc;\n          }, {} as Record<string, typeof devices>),\n        },\n        {\n          name: 'Filter and sort combined',\n          fn: () => devices\n            .filter(d => d.signal > -70)\n            .sort((a, b) => b.signal - a.signal)\n            .slice(0, 100),\n        },\n      ];\n\n      operations.forEach(({ name, fn }) => {\n        const start = performance.now();\n        const _result = fn();\n        const end = performance.now();\n        \n        console.warn(`${name} - Time: ${(end - start).toFixed(2)}ms`);\n        expect(end - start).toBeLessThan(50); // Should complete in less than 50ms\n      });\n    });\n  });\n\n  describe('Startup Performance', () => {\n    it('should measure initial page load time', async () => {\n      const start = performance.now();\n      const response = await fetch(API_BASE_URL);\n      const html = await response.text();\n      const end = performance.now();\n      \n      const loadTime = end - start;\n      console.warn(`Initial page load time: ${loadTime.toFixed(2)}ms`);\n      \n      expect(response.status).toBe(200);\n      expect(html).toContain('<!DOCTYPE html>');\n      expect(loadTime).toBeLessThan(1000); // Should load in less than 1 second\n    });\n\n    it('should measure time to interactive', () => {\n      // This would normally use Puppeteer or similar\n      // Simulating the measurement here\n      const metrics = {\n        domContentLoaded: 150,\n        firstContentfulPaint: 200,\n        timeToInteractive: 500,\n        largestContentfulPaint: 600,\n      };\n\n      console.warn('Page load metrics:', metrics);\n      \n      expect(metrics.timeToInteractive).toBeLessThan(1000);\n      expect(metrics.largestContentfulPaint).toBeLessThan(1500);\n    });\n  });\n});",
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/tests/services/map/signalClustering.test.ts",
+		"messages": [
+			{
+				"ruleId": "@typescript-eslint/no-non-null-assertion",
+				"severity": 1,
+				"message": "Forbidden non-null assertion.",
+				"line": 38,
+				"column": 14,
+				"nodeType": "TSNonNullExpression",
+				"messageId": "noNonNull",
+				"endLine": 38,
+				"endColumn": 26,
+				"suggestions": [
+					{
+						"messageId": "suggestOptionalChain",
+						"fix": { "range": [1259, 1260], "text": "?" },
+						"desc": "Consider using the optional chain operator `?.` instead. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator."
+					}
+				]
+			},
+			{
+				"ruleId": "@typescript-eslint/no-non-null-assertion",
+				"severity": 1,
+				"message": "Forbidden non-null assertion.",
+				"line": 39,
+				"column": 14,
+				"nodeType": "TSNonNullExpression",
+				"messageId": "noNonNull",
+				"endLine": 39,
+				"endColumn": 26,
+				"suggestions": [
+					{
+						"messageId": "suggestOptionalChain",
+						"fix": { "range": [1322, 1323], "text": "?" },
+						"desc": "Consider using the optional chain operator `?.` instead. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator."
+					}
+				]
+			},
+			{
+				"ruleId": "@typescript-eslint/no-non-null-assertion",
+				"severity": 1,
+				"message": "Forbidden non-null assertion.",
+				"line": 40,
+				"column": 14,
+				"nodeType": "TSNonNullExpression",
+				"messageId": "noNonNull",
+				"endLine": 40,
+				"endColumn": 26,
+				"suggestions": [
+					{
+						"messageId": "suggestOptionalChain",
+						"fix": { "range": [1375, 1376], "text": "?" },
+						"desc": "Consider using the optional chain operator `?.` instead. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator."
+					}
+				]
+			},
+			{
+				"ruleId": "@typescript-eslint/no-non-null-assertion",
+				"severity": 1,
+				"message": "Forbidden non-null assertion.",
+				"line": 45,
+				"column": 14,
+				"nodeType": "TSNonNullExpression",
+				"messageId": "noNonNull",
+				"endLine": 45,
+				"endColumn": 28,
+				"suggestions": [
+					{
+						"messageId": "suggestOptionalChain",
+						"fix": { "range": [1588, 1589], "text": "?" },
+						"desc": "Consider using the optional chain operator `?.` instead. This operator includes runtime checks, so it is safer than the compile-only non-null assertion operator."
+					}
+				]
+			}
+		],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 4,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"source": "import { describe, it, expect } from 'vitest';\nimport { clusterSignals, createClusterPopupContent, getClusterIcon } from '$lib/services/map/signalClustering';\nimport type { SignalMarker } from '$lib/stores/map/signals';\n\ndescribe('signalClustering', () => {\n  const createMockSignal = (\n    id: string, \n    lat: number, \n    lon: number, \n    power: number = -70,\n    frequency: number = 2400\n  ): SignalMarker => ({\n    id,\n    position: { lat, lon },\n    power,\n    frequency,\n    timestamp: Date.now(),\n    source: 'hackrf',\n    metadata: { type: 'wifi' }\n  });\n\n  describe('clusterSignals', () => {\n    it('should cluster signals within radius', () => {\n      const signals: SignalMarker[] = [\n        createMockSignal('1', 40.7128, -74.0060, -60),\n        createMockSignal('2', 40.7129, -74.0061, -65), // ~15m away\n        createMockSignal('3', 40.7130, -74.0062, -70), // ~30m away\n        createMockSignal('4', 40.7200, -74.0100, -55), // ~8km away\n      ];\n\n      const clusters = clusterSignals(signals, 50); // 50m radius\n\n      expect(clusters).toHaveLength(2);\n      \n      // First cluster should have 3 signals\n      const mainCluster = clusters.find(c => c.stats.count === 3);\n      expect(mainCluster).toBeDefined();\n      expect(mainCluster!.stats.avgPower).toBeCloseTo(-65, 1);\n      expect(mainCluster!.stats.minPower).toBe(-70);\n      expect(mainCluster!.stats.maxPower).toBe(-60);\n\n      // Second cluster should have 1 signal\n      const singleCluster = clusters.find(c => c.stats.count === 1);\n      expect(singleCluster).toBeDefined();\n      expect(singleCluster!.stats.avgPower).toBe(-55);\n    });\n\n    it('should not cluster if below minimum cluster size', () => {\n      const signals: SignalMarker[] = [\n        createMockSignal('1', 40.7128, -74.0060),\n        createMockSignal('2', 40.7200, -74.0100), // Far away\n      ];\n\n      const clusters = clusterSignals(signals, 50, 3); // Min size 3\n\n      expect(clusters).toHaveLength(2);\n      expect(clusters.every(c => c.stats.count === 1)).toBe(true);\n    });\n\n    it('should calculate weighted center position', () => {\n      const signals: SignalMarker[] = [\n        createMockSignal('1', 40.7128, -74.0060, -50), // Strong signal\n        createMockSignal('2', 40.7129, -74.0061, -90), // Weak signal\n      ];\n\n      const clusters = clusterSignals(signals, 100);\n      const cluster = clusters[0];\n\n      // Center should be weighted towards stronger signal\n      expect(cluster.position.lat).toBeCloseTo(40.7128, 4);\n      expect(cluster.position.lon).toBeCloseTo(-74.0060, 4);\n    });\n\n    it('should track signal types and frequencies', () => {\n      const signals: SignalMarker[] = [\n        createMockSignal('1', 40.7128, -74.0060, -60, 2412),\n        createMockSignal('2', 40.7128, -74.0060, -65, 2437),\n        createMockSignal('3', 40.7128, -74.0060, -70, 5180),\n      ];\n      signals[2].metadata = { type: 'bluetooth' };\n\n      const clusters = clusterSignals(signals, 100);\n      const cluster = clusters[0];\n\n      expect(cluster.stats.signalTypes.get('wifi')).toBe(2);\n      expect(cluster.stats.signalTypes.get('bluetooth')).toBe(1);\n      expect(cluster.stats.dominantFreq).toBe(2400); // 2.4GHz band\n    });\n  });\n\n  describe('createClusterPopupContent', () => {\n    it('should generate proper HTML content', () => {\n      const cluster = {\n        id: 'test-cluster',\n        position: { lat: 40.7128, lon: -74.0060 },\n        signals: [],\n        bounds: [40.7128, -74.0060, 40.7129, -74.0061],\n        stats: {\n          count: 5,\n          avgPower: -65,\n          maxPower: -50,\n          minPower: -80,\n          dominantFreq: 2400,\n          signalTypes: new Map([['wifi', 3], ['bluetooth', 2]]),\n          timeRange: { start: Date.now() - 30000, end: Date.now() }\n        }\n      };\n\n      const html = createClusterPopupContent(cluster);\n\n      expect(html).toContain('Signal Cluster');\n      expect(html).toContain('Signals:</strong></div>');\n      expect(html).toContain('<div>5</div>');\n      expect(html).toContain('-65.0 dBm');\n      expect(html).toContain('2.4 GHz');\n      expect(html).toContain('wifi: 3, bluetooth: 2');\n      expect(html).toContain('30s');\n    });\n  });\n\n  describe('getClusterIcon', () => {\n    it('should return appropriate icon based on signal strength', () => {\n      const strongCluster = {\n        id: 'strong',\n        position: { lat: 0, lon: 0 },\n        signals: [],\n        bounds: [0, 0, 0, 0],\n        stats: {\n          count: 10,\n          avgPower: -45,\n          maxPower: -40,\n          minPower: -50,\n          dominantFreq: 2400,\n          signalTypes: new Map([['wifi', 10]]),\n          timeRange: { start: 0, end: 0 }\n        }\n      };\n\n      const icon = getClusterIcon(strongCluster);\n      \n      expect(icon.html).toContain('#ff0000'); // Red for strong\n      expect(icon.html).toContain('10'); // Count\n      expect(icon.html).toContain('📶'); // WiFi icon\n      expect(icon.iconSize[0]).toBeGreaterThan(40);\n    });\n\n    it('should scale icon size with signal count', () => {\n      const smallCluster = {\n        id: 'small',\n        position: { lat: 0, lon: 0 },\n        signals: [],\n        bounds: [0, 0, 0, 0],\n        stats: {\n          count: 2,\n          avgPower: -70,\n          maxPower: -65,\n          minPower: -75,\n          dominantFreq: 2400,\n          signalTypes: new Map([['unknown', 2]]),\n          timeRange: { start: 0, end: 0 }\n        }\n      };\n\n      const largeCluster = { ...smallCluster, stats: { ...smallCluster.stats, count: 100 } };\n\n      const smallIcon = getClusterIcon(smallCluster);\n      const largeIcon = getClusterIcon(largeCluster);\n\n      expect(largeIcon.iconSize[0]).toBeGreaterThan(smallIcon.iconSize[0]);\n      expect(largeIcon.iconSize[0]).toBeLessThanOrEqual(80); // Max size\n    });\n  });\n});",
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/tests/setup.ts",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/tests/simulation/droneSimulator.ts",
+		"messages": [
+			{
+				"ruleId": "@typescript-eslint/require-await",
+				"severity": 2,
+				"message": "Async method 'simulate' has no 'await' expression.",
+				"line": 51,
+				"column": 3,
+				"nodeType": "FunctionExpression",
+				"messageId": "missingAwait",
+				"endLine": 51,
+				"endColumn": 17,
+				"suggestions": [
+					{
+						"messageId": "removeAsync",
+						"fix": { "range": [1365, 1409], "text": "simulate(): SimulatedSignal[]" },
+						"desc": "Remove 'async'."
+					}
+				]
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unused-vars",
+				"severity": 2,
+				"message": "'latChange' is assigned a value but never used. Allowed unused vars must match /^_/u.",
+				"line": 103,
+				"column": 11,
+				"nodeType": null,
+				"messageId": "unusedVar",
+				"endLine": 103,
+				"endColumn": 20
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unused-vars",
+				"severity": 2,
+				"message": "'deltaTime' is defined but never used. Allowed unused args must match /^_/u.",
+				"line": 120,
+				"column": 30,
+				"nodeType": null,
+				"messageId": "unusedVar",
+				"endLine": 120,
+				"endColumn": 39
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unused-vars",
+				"severity": 2,
+				"message": "'deltaTime' is defined but never used. Allowed unused args must match /^_/u.",
+				"line": 140,
+				"column": 37,
+				"nodeType": null,
+				"messageId": "unusedVar",
+				"endLine": 140,
+				"endColumn": 46
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unused-vars",
+				"severity": 2,
+				"message": "'deltaTime' is defined but never used. Allowed unused args must match /^_/u.",
+				"line": 149,
+				"column": 31,
+				"nodeType": null,
+				"messageId": "unusedVar",
+				"endLine": 149,
+				"endColumn": 40
+			}
+		],
+		"suppressedMessages": [],
+		"errorCount": 5,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"source": "export interface DroneSimulatorConfig {\n  startPosition: { lat: number; lon: number };\n  flightPattern: 'grid' | 'orbit' | 'linear' | 'random' | 'surveillance';\n  speed: number; // m/s\n  altitude: number; // meters\n  duration: number; // seconds\n  signalStrength?: number; // dBm\n  frequency?: number; // Hz\n  environmentFactors?: {\n    windSpeed?: number; // m/s\n    windDirection?: number; // degrees\n    signalNoise?: number; // dB\n    urbanDensity?: number; // 0-1\n  };\n}\n\nexport interface SimulatedSignal {\n  timestamp: number;\n  latitude: number;\n  longitude: number;\n  altitude: number;\n  strength: number;\n  frequency: number;\n  velocity: { x: number; y: number; z: number };\n  metadata: {\n    droneId: string;\n    pattern: string;\n    batteryLevel: number;\n    gpsAccuracy: number;\n  };\n}\n\nexport class DroneSimulator {\n  private config: DroneSimulatorConfig;\n  private currentPosition: { lat: number; lon: number; alt: number };\n  private currentTime: number;\n  private signals: SimulatedSignal[] = [];\n  private droneId: string;\n  \n  constructor(config: DroneSimulatorConfig) {\n    this.config = config;\n    this.currentPosition = {\n      lat: config.startPosition.lat,\n      lon: config.startPosition.lon,\n      alt: config.altitude\n    };\n    this.currentTime = Date.now();\n    this.droneId = `drone_${Math.random().toString(36).substr(2, 9)}`;\n  }\n\n  async simulate(): Promise<SimulatedSignal[]> {\n    const timeStep = 1000; // 1 second intervals\n    const steps = Math.floor(this.config.duration * 1000 / timeStep);\n    \n    for (let i = 0; i < steps; i++) {\n      this.updatePosition(timeStep / 1000);\n      this.generateSignal();\n      this.currentTime += timeStep;\n      \n      // Add some randomness for realism\n      if (Math.random() < 0.1) {\n        // 10% chance of missing signal\n        continue;\n      }\n    }\n    \n    return this.signals;\n  }\n\n  private updatePosition(deltaTime: number): void {\n    switch (this.config.flightPattern) {\n      case 'grid':\n        this.updateGridPattern(deltaTime);\n        break;\n      case 'orbit':\n        this.updateOrbitPattern(deltaTime);\n        break;\n      case 'linear':\n        this.updateLinearPattern(deltaTime);\n        break;\n      case 'surveillance':\n        this.updateSurveillancePattern(deltaTime);\n        break;\n      case 'random':\n        this.updateRandomPattern(deltaTime);\n        break;\n    }\n    \n    // Apply environmental factors\n    if (this.config.environmentFactors) {\n      this.applyWind(deltaTime);\n      this.applyGPSDrift();\n    }\n  }\n\n  private updateGridPattern(deltaTime: number): void {\n    // Implement lawn mower pattern\n    const gridSize = 0.001; // ~100m in latitude\n    const speed = this.config.speed;\n    const distance = speed * deltaTime;\n    \n    // Convert to approximate lat/lon change\n    const latChange = (distance / 111320) * Math.cos(this.currentPosition.lat * Math.PI / 180);\n    const lonChange = distance / 111320;\n    \n    // Simple back-and-forth pattern\n    const row = Math.floor((this.currentTime - Date.now()) / 10000) % 10;\n    if (row % 2 === 0) {\n      this.currentPosition.lon += lonChange;\n    } else {\n      this.currentPosition.lon -= lonChange;\n    }\n    \n    // Move to next row at boundaries\n    if (Math.abs(this.currentPosition.lon - this.config.startPosition.lon) > gridSize * 5) {\n      this.currentPosition.lat += gridSize;\n    }\n  }\n\n  private updateOrbitPattern(deltaTime: number): void {\n    const radius = 0.0005; // ~50m radius\n    const angularSpeed = this.config.speed / (radius * 111320);\n    const angle = (this.currentTime - Date.now()) * angularSpeed / 1000;\n    \n    this.currentPosition.lat = this.config.startPosition.lat + radius * Math.cos(angle);\n    this.currentPosition.lon = this.config.startPosition.lon + radius * Math.sin(angle);\n  }\n\n  private updateLinearPattern(deltaTime: number): void {\n    const bearing = 45; // degrees\n    const distance = this.config.speed * deltaTime;\n    \n    const latChange = (distance / 111320) * Math.cos(bearing * Math.PI / 180);\n    const lonChange = (distance / 111320) * Math.sin(bearing * Math.PI / 180);\n    \n    this.currentPosition.lat += latChange;\n    this.currentPosition.lon += lonChange;\n  }\n\n  private updateSurveillancePattern(deltaTime: number): void {\n    // Figure-8 pattern for surveillance\n    const t = (this.currentTime - Date.now()) / 10000;\n    const scale = 0.001;\n    \n    this.currentPosition.lat = this.config.startPosition.lat + scale * Math.sin(t);\n    this.currentPosition.lon = this.config.startPosition.lon + scale * Math.sin(2 * t) / 2;\n  }\n\n  private updateRandomPattern(deltaTime: number): void {\n    const maxChange = 0.0001;\n    this.currentPosition.lat += (Math.random() - 0.5) * maxChange;\n    this.currentPosition.lon += (Math.random() - 0.5) * maxChange;\n    this.currentPosition.alt += (Math.random() - 0.5) * 5;\n    \n    // Keep altitude in bounds\n    this.currentPosition.alt = Math.max(10, Math.min(400, this.currentPosition.alt));\n  }\n\n  private applyWind(deltaTime: number): void {\n    if (!this.config.environmentFactors?.windSpeed) return;\n    \n    const windSpeed = this.config.environmentFactors.windSpeed;\n    const windDirection = this.config.environmentFactors.windDirection || 0;\n    \n    const windEffect = windSpeed * deltaTime / 111320;\n    this.currentPosition.lat += windEffect * Math.cos(windDirection * Math.PI / 180);\n    this.currentPosition.lon += windEffect * Math.sin(windDirection * Math.PI / 180);\n  }\n\n  private applyGPSDrift(): void {\n    const drift = 0.00001; // ~1m drift\n    this.currentPosition.lat += (Math.random() - 0.5) * drift;\n    this.currentPosition.lon += (Math.random() - 0.5) * drift;\n  }\n\n  private generateSignal(): void {\n    const baseStrength = this.config.signalStrength || -40;\n    const noise = this.config.environmentFactors?.signalNoise || 5;\n    \n    // Calculate velocity\n    const lastSignal = this.signals[this.signals.length - 1];\n    let velocity = { x: 0, y: 0, z: 0 };\n    \n    if (lastSignal) {\n      const dt = (this.currentTime - lastSignal.timestamp) / 1000;\n      velocity = {\n        x: (this.currentPosition.lon - lastSignal.longitude) * 111320 / dt,\n        y: (this.currentPosition.lat - lastSignal.latitude) * 111320 / dt,\n        z: (this.currentPosition.alt - lastSignal.altitude) / dt\n      };\n    }\n    \n    const signal: SimulatedSignal = {\n      timestamp: this.currentTime,\n      latitude: this.currentPosition.lat,\n      longitude: this.currentPosition.lon,\n      altitude: this.currentPosition.alt,\n      strength: baseStrength + (Math.random() - 0.5) * noise,\n      frequency: this.config.frequency || 2437000000, // 2.437 GHz\n      velocity,\n      metadata: {\n        droneId: this.droneId,\n        pattern: this.config.flightPattern,\n        batteryLevel: 100 - (this.signals.length / 10), // Simulate battery drain\n        gpsAccuracy: 5 + Math.random() * 10 // 5-15m accuracy\n      }\n    };\n    \n    this.signals.push(signal);\n  }\n\n  // Utility methods for testing\n  getFlightPath(): Array<{ lat: number; lon: number; alt: number }> {\n    return this.signals.map(s => ({\n      lat: s.latitude,\n      lon: s.longitude,\n      alt: s.altitude\n    }));\n  }\n\n  getAverageSpeed(): number {\n    if (this.signals.length < 2) return 0;\n    \n    let totalDistance = 0;\n    for (let i = 1; i < this.signals.length; i++) {\n      const prev = this.signals[i - 1];\n      const curr = this.signals[i];\n      const distance = this.calculateDistance(\n        prev.latitude, prev.longitude,\n        curr.latitude, curr.longitude\n      );\n      totalDistance += distance;\n    }\n    \n    const totalTime = (this.signals[this.signals.length - 1].timestamp - this.signals[0].timestamp) / 1000;\n    return totalDistance / totalTime;\n  }\n\n  private calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {\n    const R = 6371000; // Earth radius in meters\n    const φ1 = lat1 * Math.PI / 180;\n    const φ2 = lat2 * Math.PI / 180;\n    const Δφ = (lat2 - lat1) * Math.PI / 180;\n    const Δλ = (lon2 - lon1) * Math.PI / 180;\n\n    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +\n              Math.cos(φ1) * Math.cos(φ2) *\n              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);\n    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));\n\n    return R * c;\n  }\n}",
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/tests/unit/components.test.ts",
+		"messages": [
+			{
+				"ruleId": "@typescript-eslint/no-unused-vars",
+				"severity": 2,
+				"message": "'beforeEach' is defined but never used. Allowed unused vars must match /^_/u.",
+				"line": 1,
+				"column": 32,
+				"nodeType": null,
+				"messageId": "unusedVar",
+				"endLine": 1,
+				"endColumn": 42
+			},
+			{
+				"ruleId": "@typescript-eslint/no-non-null-assertion",
+				"severity": 1,
+				"message": "Forbidden non-null assertion.",
+				"line": 108,
+				"column": 29,
+				"nodeType": "TSNonNullExpression",
+				"messageId": "noNonNull",
+				"endLine": 108,
+				"endColumn": 34
+			},
+			{
+				"ruleId": "@typescript-eslint/require-await",
+				"severity": 2,
+				"message": "Async arrow function has no 'await' expression.",
+				"line": 115,
+				"column": 57,
+				"nodeType": "ArrowFunctionExpression",
+				"messageId": "missingAwait",
+				"endLine": 115,
+				"endColumn": 59,
+				"suggestions": [
+					{
+						"messageId": "removeAsync",
+						"fix": { "range": [3834, 3840], "text": "" },
+						"desc": "Remove 'async'."
+					}
+				]
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .length on an `any` value.",
+				"line": 207,
+				"column": 32,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 207,
+				"endColumn": 38
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access [0] on an `any` value.",
+				"line": 223,
+				"column": 32,
+				"nodeType": "Literal",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 223,
+				"endColumn": 33
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .signal on an `error` typed value.",
+				"line": 289,
+				"column": 26,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 289,
+				"endColumn": 32
+			}
+		],
+		"suppressedMessages": [],
+		"errorCount": 5,
+		"fatalErrorCount": 0,
+		"warningCount": 1,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"source": "import { describe, it, expect, beforeEach, vi } from 'vitest';\nimport { render, fireEvent, waitFor } from '@testing-library/svelte';\nimport { tick } from 'svelte';\n\n// Mock component imports (these would be actual imports in a real test)\n// import SpectrumAnalyzer from '$lib/components/SpectrumAnalyzer.svelte';\n// import DeviceCard from '$lib/components/DeviceCard.svelte';\n// import FrequencySweeper from '$lib/components/FrequencySweeper.svelte';\n\ndescribe('Component Functionality Tests', () => {\n  describe('SpectrumAnalyzer Component', () => {\n    it('should render canvas element', () => {\n      const { container } = render(MockSpectrumAnalyzer);\n      const canvas = container.querySelector('canvas');\n      expect(canvas).toBeTruthy();\n      expect(canvas?.classList.contains('spectrum-canvas')).toBe(true);\n    });\n\n    it('should update on frequency change', async () => {\n      const { container, component } = render(MockSpectrumAnalyzer, {\n        centerFrequency: 100000000,\n      });\n\n      // Update frequency\n      component.$set({ centerFrequency: 105000000 });\n      await tick();\n\n      const canvas = container.querySelector('canvas');\n      expect(canvas).toBeTruthy();\n      // Would check actual canvas content in real test\n    });\n\n    it('should handle WebSocket data updates', async () => {\n      const { component } = render(MockSpectrumAnalyzer);\n      \n      const mockData = {\n        frequencies: new Float32Array([100, 101, 102]),\n        amplitudes: new Float32Array([-50, -60, -55]),\n      };\n\n      // Simulate WebSocket update\n      component.$set({ spectrumData: mockData });\n      await tick();\n\n      // Would verify canvas rendering in real test\n      expect(component.spectrumData).toEqual(mockData);\n    });\n\n    it('should apply correct scaling for different view modes', async () => {\n      const { component } = render(MockSpectrumAnalyzer);\n      \n      // Test different scales\n      const scales = ['linear', 'log'];\n      for (const scale of scales) {\n        component.$set({ scale });\n        await tick();\n        expect(component.scale).toBe(scale);\n      }\n    });\n  });\n\n  describe('DeviceCard Component', () => {\n    const mockDevice = {\n      id: 'test-123',\n      name: 'Test Device',\n      mac: '00:11:22:33:44:55',\n      signal: -65,\n      lastSeen: new Date().toISOString(),\n      vendor: 'Test Vendor',\n    };\n\n    it('should display device information correctly', () => {\n      const { getByText, getByTestId } = render(MockDeviceCard, {\n        device: mockDevice,\n      });\n\n      expect(getByText(mockDevice.name)).toBeTruthy();\n      expect(getByText(mockDevice.mac)).toBeTruthy();\n      expect(getByTestId('signal-strength')).toHaveTextContent('-65 dBm');\n    });\n\n    it('should update signal strength indicator', async () => {\n      const { getByTestId, component } = render(MockDeviceCard, {\n        device: mockDevice,\n      });\n\n      const signalBar = getByTestId('signal-bar');\n      \n      // Strong signal\n      component.$set({ device: { ...mockDevice, signal: -50 } });\n      await tick();\n      expect(signalBar.classList.contains('signal-strong')).toBe(true);\n\n      // Weak signal\n      component.$set({ device: { ...mockDevice, signal: -85 } });\n      await tick();\n      expect(signalBar.classList.contains('signal-weak')).toBe(true);\n    });\n\n    it('should emit click event when selected', async () => {\n      const handleClick = vi.fn();\n      const { container } = render(MockDeviceCard, {\n        device: mockDevice,\n        onclick: handleClick,\n      });\n\n      const card = container.querySelector('.device-card');\n      await fireEvent.click(card!);\n      \n      expect(handleClick).toHaveBeenCalledWith(expect.objectContaining({\n        detail: { device: mockDevice },\n      }));\n    });\n\n    it('should show last seen time correctly', async () => {\n      const { getByTestId } = render(MockDeviceCard, {\n        device: {\n          ...mockDevice,\n          lastSeen: new Date(Date.now() - 60000).toISOString(), // 1 minute ago\n        },\n      });\n\n      const lastSeen = getByTestId('last-seen');\n      expect(lastSeen.textContent).toMatch(/1 minute ago/);\n    });\n  });\n\n  describe('FrequencySweeper Component', () => {\n    it('should validate frequency inputs', async () => {\n      const { getByLabelText, getByText } = render(MockFrequencySweeper);\n      \n      const startFreqInput = getByLabelText('Start Frequency') as HTMLInputElement;\n      const endFreqInput = getByLabelText('End Frequency') as HTMLInputElement;\n\n      // Valid input\n      await fireEvent.input(startFreqInput, { target: { value: '88000000' } });\n      await fireEvent.input(endFreqInput, { target: { value: '108000000' } });\n      \n      expect(startFreqInput.validity.valid).toBe(true);\n      expect(endFreqInput.validity.valid).toBe(true);\n\n      // Invalid input (start > end)\n      await fireEvent.input(startFreqInput, { target: { value: '108000000' } });\n      await fireEvent.input(endFreqInput, { target: { value: '88000000' } });\n      \n      await waitFor(() => {\n        expect(getByText(/Start frequency must be less than end frequency/)).toBeTruthy();\n      });\n    });\n\n    it('should update progress during sweep', async () => {\n      const { getByTestId, component } = render(MockFrequencySweeper, {\n        isSweping: true,\n        progress: 0,\n      });\n\n      const progressBar = getByTestId('progress-bar');\n      \n      // Update progress\n      for (let progress = 0; progress <= 100; progress += 25) {\n        component.$set({ progress });\n        await tick();\n        expect(progressBar.style.width).toBe(`${progress}%`);\n      }\n    });\n\n    it('should disable controls during sweep', async () => {\n      const { getByText, component } = render(MockFrequencySweeper, {\n        isSweping: false,\n      });\n\n      const startButton = getByText('Start Sweep') as HTMLButtonElement;\n      expect(startButton.disabled).toBe(false);\n\n      // Start sweep\n      component.$set({ isSweping: true });\n      await tick();\n\n      expect(startButton.disabled).toBe(true);\n      expect(getByText('Stop Sweep')).toBeTruthy();\n    });\n  });\n\n  describe('Map Component', () => {\n    it('should initialize with correct center coordinates', () => {\n      const { container } = render(MockMapComponent, {\n        center: { lat: 40.7128, lng: -74.0060 },\n        zoom: 12,\n      });\n\n      const mapContainer = container.querySelector('.map-container');\n      expect(mapContainer).toBeTruthy();\n    });\n\n    it('should add device markers to map', async () => {\n      const { component } = render(MockMapComponent);\n      \n      const devices = [\n        { id: '1', lat: 40.7128, lng: -74.0060, name: 'Device 1' },\n        { id: '2', lat: 40.7580, lng: -73.9855, name: 'Device 2' },\n      ];\n\n      component.$set({ devices });\n      await tick();\n\n      // Would verify marker creation in real test\n      expect(component.devices.length).toBe(2);\n    });\n\n    it('should update device positions in real-time', async () => {\n      const { component } = render(MockMapComponent);\n      \n      const device = { id: '1', lat: 40.7128, lng: -74.0060, name: 'Device 1' };\n      component.$set({ devices: [device] });\n      await tick();\n\n      // Update position\n      const updatedDevice = { ...device, lat: 40.7580, lng: -73.9855 };\n      component.$set({ devices: [updatedDevice] });\n      await tick();\n\n      // Would verify marker position update in real test\n      expect(component.devices[0].lat).toBe(40.7580);\n    });\n  });\n\n  describe('Control Panel Component', () => {\n    it('should toggle between different modes', async () => {\n      const { getByText, component } = render(MockControlPanel);\n      \n      const modes = ['Spectrum', 'Sweep', 'Devices'];\n      for (const mode of modes) {\n        const button = getByText(mode);\n        await fireEvent.click(button);\n        expect(component.activeMode).toBe(mode.toLowerCase());\n      }\n    });\n\n    it('should save and load presets', async () => {\n      const { getByText, getByLabelText } = render(MockControlPanel);\n      \n      // Save preset\n      const saveButton = getByText('Save Preset');\n      const nameInput = getByLabelText('Preset Name') as HTMLInputElement;\n      \n      await fireEvent.input(nameInput, { target: { value: 'My Preset' } });\n      await fireEvent.click(saveButton);\n      \n      // Would verify preset saved in real test\n      expect(nameInput.value).toBe('');\n    });\n\n    it('should validate gain settings', async () => {\n      const { getByLabelText } = render(MockControlPanel);\n      \n      const gainSlider = getByLabelText('Gain') as HTMLInputElement;\n      \n      // Valid range\n      await fireEvent.input(gainSlider, { target: { value: '30' } });\n      expect(gainSlider.validity.valid).toBe(true);\n      \n      // Out of range\n      gainSlider.setAttribute('max', '50');\n      await fireEvent.input(gainSlider, { target: { value: '60' } });\n      expect(Number(gainSlider.value)).toBeLessThanOrEqual(50);\n    });\n  });\n});\n\n// Mock components for testing\nconst MockSpectrumAnalyzer = {\n  props: ['centerFrequency', 'spectrumData', 'scale'],\n  template: '<canvas class=\"spectrum-canvas\"></canvas>',\n};\n\nconst MockDeviceCard = {\n  props: ['device', 'onclick'],\n  template: `\n    <div class=\"device-card\">\n      <div>{{ device.name }}</div>\n      <div>{{ device.mac }}</div>\n      <div data-testid=\"signal-strength\">{{ device.signal }} dBm</div>\n      <div data-testid=\"signal-bar\" :class=\"signalClass\"></div>\n      <div data-testid=\"last-seen\">{{ lastSeenText }}</div>\n    </div>\n  `,\n  computed: {\n    signalClass() {\n      return this.device.signal > -70 ? 'signal-strong' : 'signal-weak';\n    },\n    lastSeenText() {\n      return '1 minute ago'; // Simplified for test\n    },\n  },\n};\n\nconst MockFrequencySweeper = {\n  props: ['isSweping', 'progress'],\n  template: `\n    <div>\n      <input type=\"number\" aria-label=\"Start Frequency\" />\n      <input type=\"number\" aria-label=\"End Frequency\" />\n      <button :disabled=\"isSweping\">\n        {{ isSweping ? 'Stop Sweep' : 'Start Sweep' }}\n      </button>\n      <div data-testid=\"progress-bar\" :style=\"{ width: progress + '%' }\"></div>\n    </div>\n  `,\n};\n\nconst MockMapComponent = {\n  props: ['center', 'zoom', 'devices'],\n  template: '<div class=\"map-container\"></div>',\n};\n\nconst MockControlPanel = {\n  data() {\n    return { activeMode: 'spectrum' };\n  },\n  template: `\n    <div>\n      <button @click=\"activeMode = 'spectrum'\">Spectrum</button>\n      <button @click=\"activeMode = 'sweep'\">Sweep</button>\n      <button @click=\"activeMode = 'devices'\">Devices</button>\n      <input aria-label=\"Preset Name\" />\n      <button>Save Preset</button>\n      <input type=\"range\" aria-label=\"Gain\" min=\"0\" max=\"50\" />\n    </div>\n  `,\n};",
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/tests/unit/services/map/signalClustering.test.ts",
+		"messages": [
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 9,
+				"column": 5,
+				"nodeType": "AssignmentExpression",
+				"messageId": "anyAssignment",
+				"endLine": 13,
+				"endColumn": 7
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe construction of a(n) `error` type typed value.",
+				"line": 9,
+				"column": 25,
+				"nodeType": "NewExpression",
+				"messageId": "unsafeNew",
+				"endLine": 13,
+				"endColumn": 7
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 48,
+				"column": 13,
+				"nodeType": "VariableDeclarator",
+				"messageId": "anyAssignment",
+				"endLine": 48,
+				"endColumn": 65
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 48,
+				"column": 24,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 48,
+				"endColumn": 56
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .clusterSignals on an `error` typed value.",
+				"line": 48,
+				"column": 42,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 48,
+				"endColumn": 56
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access [0] on an `error` typed value.",
+				"line": 51,
+				"column": 23,
+				"nodeType": "Literal",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 51,
+				"endColumn": 24
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access [1] on an `error` typed value.",
+				"line": 52,
+				"column": 23,
+				"nodeType": "Literal",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 52,
+				"endColumn": 24
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 66,
+				"column": 13,
+				"nodeType": "VariableDeclarator",
+				"messageId": "anyAssignment",
+				"endLine": 66,
+				"endColumn": 65
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 66,
+				"column": 24,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 66,
+				"endColumn": 56
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .clusterSignals on an `error` typed value.",
+				"line": 66,
+				"column": 42,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 66,
+				"endColumn": 56
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access [0] on an `error` typed value.",
+				"line": 69,
+				"column": 23,
+				"nodeType": "Literal",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 69,
+				"endColumn": 24
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access [0] on an `error` typed value.",
+				"line": 70,
+				"column": 23,
+				"nodeType": "Literal",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 70,
+				"endColumn": 24
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 74,
+				"column": 13,
+				"nodeType": "VariableDeclarator",
+				"messageId": "anyAssignment",
+				"endLine": 74,
+				"endColumn": 60
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 74,
+				"column": 24,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 74,
+				"endColumn": 56
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .clusterSignals on an `error` typed value.",
+				"line": 74,
+				"column": 42,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 74,
+				"endColumn": 56
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 79,
+				"column": 7,
+				"nodeType": "AssignmentExpression",
+				"messageId": "anyAssignment",
+				"endLine": 83,
+				"endColumn": 9
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe construction of a(n) `error` type typed value.",
+				"line": 79,
+				"column": 27,
+				"nodeType": "NewExpression",
+				"messageId": "unsafeNew",
+				"endLine": 83,
+				"endColumn": 9
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 106,
+				"column": 13,
+				"nodeType": "VariableDeclarator",
+				"messageId": "anyAssignment",
+				"endLine": 106,
+				"endColumn": 65
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 106,
+				"column": 24,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 106,
+				"endColumn": 56
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .clusterSignals on an `error` typed value.",
+				"line": 106,
+				"column": 42,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 106,
+				"endColumn": 56
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 110,
+				"column": 14,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 110,
+				"endColumn": 28
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .every on an `error` typed value.",
+				"line": 110,
+				"column": 23,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 110,
+				"endColumn": 28
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-return",
+				"severity": 2,
+				"message": "Unsafe return of a value of type `any`.",
+				"line": 110,
+				"column": 34,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeReturn",
+				"endLine": 110,
+				"endColumn": 50
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .isSingleSignal on an `any` value.",
+				"line": 110,
+				"column": 36,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 110,
+				"endColumn": 50
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 124,
+				"column": 13,
+				"nodeType": "VariableDeclarator",
+				"messageId": "anyAssignment",
+				"endLine": 124,
+				"endColumn": 65
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 124,
+				"column": 24,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 124,
+				"endColumn": 56
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .clusterSignals on an `error` typed value.",
+				"line": 124,
+				"column": 42,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 124,
+				"endColumn": 56
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access [0] on an `error` typed value.",
+				"line": 128,
+				"column": 23,
+				"nodeType": "Literal",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 128,
+				"endColumn": 24
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 134,
+				"column": 13,
+				"nodeType": "VariableDeclarator",
+				"messageId": "anyAssignment",
+				"endLine": 137,
+				"endColumn": 8
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 134,
+				"column": 24,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 134,
+				"endColumn": 59
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .calculateDistance on an `error` typed value.",
+				"line": 134,
+				"column": 42,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 134,
+				"endColumn": 59
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 145,
+				"column": 13,
+				"nodeType": "VariableDeclarator",
+				"messageId": "anyAssignment",
+				"endLine": 148,
+				"endColumn": 8
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 145,
+				"column": 24,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 145,
+				"endColumn": 59
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .calculateDistance on an `error` typed value.",
+				"line": 145,
+				"column": 42,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 145,
+				"endColumn": 59
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 154,
+				"column": 13,
+				"nodeType": "VariableDeclarator",
+				"messageId": "anyAssignment",
+				"endLine": 157,
+				"endColumn": 8
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 154,
+				"column": 24,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 154,
+				"endColumn": 59
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .calculateDistance on an `error` typed value.",
+				"line": 154,
+				"column": 42,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 154,
+				"endColumn": 59
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 164,
+				"column": 13,
+				"nodeType": "VariableDeclarator",
+				"messageId": "anyAssignment",
+				"endLine": 167,
+				"endColumn": 8
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 164,
+				"column": 24,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 164,
+				"endColumn": 59
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .calculateDistance on an `error` typed value.",
+				"line": 164,
+				"column": 42,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 164,
+				"endColumn": 59
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 214,
+				"column": 13,
+				"nodeType": "VariableDeclarator",
+				"messageId": "anyAssignment",
+				"endLine": 214,
+				"endColumn": 75
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 214,
+				"column": 22,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 214,
+				"endColumn": 53
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .mergeClusters on an `error` typed value.",
+				"line": 214,
+				"column": 40,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 214,
+				"endColumn": 53
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access [0] on an `error` typed value.",
+				"line": 217,
+				"column": 21,
+				"nodeType": "Literal",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 217,
+				"endColumn": 22
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access [0] on an `error` typed value.",
+				"line": 218,
+				"column": 21,
+				"nodeType": "Literal",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 218,
+				"endColumn": 22
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 259,
+				"column": 13,
+				"nodeType": "VariableDeclarator",
+				"messageId": "anyAssignment",
+				"endLine": 259,
+				"endColumn": 75
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 259,
+				"column": 22,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 259,
+				"endColumn": 53
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .mergeClusters on an `error` typed value.",
+				"line": 259,
+				"column": 40,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 259,
+				"endColumn": 53
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access [0] on an `error` typed value.",
+				"line": 261,
+				"column": 21,
+				"nodeType": "Literal",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 261,
+				"endColumn": 22
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access [0] on an `error` typed value.",
+				"line": 262,
+				"column": 21,
+				"nodeType": "Literal",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 262,
+				"endColumn": 22
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 287,
+				"column": 13,
+				"nodeType": "VariableDeclarator",
+				"messageId": "anyAssignment",
+				"endLine": 287,
+				"endColumn": 65
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 287,
+				"column": 24,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 287,
+				"endColumn": 56
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .clusterSignals on an `error` typed value.",
+				"line": 287,
+				"column": 42,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 287,
+				"endColumn": 56
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access [0] on an `error` typed value.",
+				"line": 290,
+				"column": 23,
+				"nodeType": "Literal",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 290,
+				"endColumn": 24
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access [0] on an `error` typed value.",
+				"line": 291,
+				"column": 23,
+				"nodeType": "Literal",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 291,
+				"endColumn": 24
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 325,
+				"column": 13,
+				"nodeType": "VariableDeclarator",
+				"messageId": "anyAssignment",
+				"endLine": 325,
+				"endColumn": 65
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 325,
+				"column": 24,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 325,
+				"endColumn": 56
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .clusterSignals on an `error` typed value.",
+				"line": 325,
+				"column": 42,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 325,
+				"endColumn": 56
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access [0] on an `error` typed value.",
+				"line": 329,
+				"column": 23,
+				"nodeType": "Literal",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 329,
+				"endColumn": 24
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 346,
+				"column": 13,
+				"nodeType": "VariableDeclarator",
+				"messageId": "anyAssignment",
+				"endLine": 346,
+				"endColumn": 65
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 346,
+				"column": 24,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 346,
+				"endColumn": 56
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .clusterSignals on an `error` typed value.",
+				"line": 346,
+				"column": 42,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 346,
+				"endColumn": 56
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .length on an `error` typed value.",
+				"line": 350,
+				"column": 23,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 350,
+				"endColumn": 29
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 353,
+				"column": 13,
+				"nodeType": "VariableDeclarator",
+				"messageId": "anyAssignment",
+				"endLine": 353,
+				"endColumn": 82
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 353,
+				"column": 28,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 353,
+				"endColumn": 43
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .reduce on an `error` typed value.",
+				"line": 353,
+				"column": 37,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 353,
+				"endColumn": 43
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-return",
+				"severity": 2,
+				"message": "Unsafe return of a value of type `any`.",
+				"line": 353,
+				"column": 56,
+				"nodeType": "BinaryExpression",
+				"messageId": "unsafeReturn",
+				"endLine": 353,
+				"endColumn": 78
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .signals on an `any` value.",
+				"line": 353,
+				"column": 64,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 353,
+				"endColumn": 71
+			}
+		],
+		"suppressedMessages": [],
+		"errorCount": 68,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"source": "import { describe, it, expect, beforeEach } from 'vitest';\nimport { SignalClusteringService } from '$lib/services/map/signalClustering';\nimport type { Signal, SignalCluster } from '$lib/types/signal';\n\ndescribe('SignalClusteringService', () => {\n  let clusteringService: SignalClusteringService;\n  \n  beforeEach(() => {\n    clusteringService = new SignalClusteringService({\n      proximityThreshold: 50, // meters\n      minClusterSize: 2,\n      mergeThreshold: 100 // meters\n    });\n  });\n\n  describe('Cluster Creation', () => {\n    it('should create clusters from signals within proximity threshold', () => {\n      const signals: Signal[] = [\n        {\n          id: '1',\n          timestamp: Date.now(),\n          latitude: 40.7128,\n          longitude: -74.0060,\n          strength: -50,\n          frequency: 2400000000,\n          metadata: {}\n        },\n        {\n          id: '2',\n          timestamp: Date.now(),\n          latitude: 40.7130,\n          longitude: -74.0062,\n          strength: -55,\n          frequency: 2400000000,\n          metadata: {}\n        },\n        {\n          id: '3',\n          timestamp: Date.now(),\n          latitude: 40.7500,\n          longitude: -74.0100,\n          strength: -60,\n          frequency: 2400000000,\n          metadata: {}\n        }\n      ];\n\n      const clusters = clusteringService.clusterSignals(signals);\n      \n      expect(clusters).toHaveLength(2);\n      expect(clusters[0].signals).toHaveLength(2);\n      expect(clusters[1].signals).toHaveLength(1);\n    });\n\n    it('should handle single signal (no clustering)', () => {\n      const signals: Signal[] = [{\n        id: '1',\n        timestamp: Date.now(),\n        latitude: 40.7128,\n        longitude: -74.0060,\n        strength: -50,\n        frequency: 2400000000,\n        metadata: {}\n      }];\n\n      const clusters = clusteringService.clusterSignals(signals);\n      \n      expect(clusters).toHaveLength(1);\n      expect(clusters[0].signals).toHaveLength(1);\n      expect(clusters[0].isSingleSignal).toBe(true);\n    });\n\n    it('should handle empty signal array', () => {\n      const clusters = clusteringService.clusterSignals([]);\n      expect(clusters).toHaveLength(0);\n    });\n\n    it('should respect minimum cluster size', () => {\n      clusteringService = new SignalClusteringService({\n        proximityThreshold: 50,\n        minClusterSize: 3,\n        mergeThreshold: 100\n      });\n\n      const signals: Signal[] = [\n        {\n          id: '1',\n          timestamp: Date.now(),\n          latitude: 40.7128,\n          longitude: -74.0060,\n          strength: -50,\n          frequency: 2400000000,\n          metadata: {}\n        },\n        {\n          id: '2',\n          timestamp: Date.now(),\n          latitude: 40.7130,\n          longitude: -74.0062,\n          strength: -55,\n          frequency: 2400000000,\n          metadata: {}\n        }\n      ];\n\n      const clusters = clusteringService.clusterSignals(signals);\n      \n      // Should not cluster because min size is 3\n      expect(clusters).toHaveLength(2);\n      expect(clusters.every(c => c.isSingleSignal)).toBe(true);\n    });\n\n    it('should handle overlapping clusters correctly', () => {\n      const signals: Signal[] = Array.from({ length: 10 }, (_, i) => ({\n        id: `${i}`,\n        timestamp: Date.now(),\n        latitude: 40.7128 + (i * 0.0001),\n        longitude: -74.0060 + (i * 0.0001),\n        strength: -50 - i,\n        frequency: 2400000000,\n        metadata: {}\n      }));\n\n      const clusters = clusteringService.clusterSignals(signals);\n      \n      // All signals should be in one cluster due to chain proximity\n      expect(clusters).toHaveLength(1);\n      expect(clusters[0].signals).toHaveLength(10);\n    });\n  });\n\n  describe('Distance Calculations', () => {\n    it('should calculate haversine distance accurately', () => {\n      const distance = clusteringService.calculateDistance(\n        40.7128, -74.0060, // NYC\n        40.7130, -74.0062  // Nearby point\n      );\n      \n      // Should be approximately 31 meters\n      expect(distance).toBeGreaterThan(30);\n      expect(distance).toBeLessThan(32);\n    });\n\n    it('should handle identical coordinates', () => {\n      const distance = clusteringService.calculateDistance(\n        40.7128, -74.0060,\n        40.7128, -74.0060\n      );\n      \n      expect(distance).toBe(0);\n    });\n\n    it('should handle date line crossing', () => {\n      const distance = clusteringService.calculateDistance(\n        0, 179.9,\n        0, -179.9\n      );\n      \n      // Should be very small distance, not half earth circumference\n      expect(distance).toBeLessThan(25000); // 25km\n    });\n\n    it('should handle pole calculations', () => {\n      const distance = clusteringService.calculateDistance(\n        89.9, 0,\n        90, 0\n      );\n      \n      expect(distance).toBeGreaterThan(0);\n      expect(distance).toBeLessThan(20000); // 20km\n    });\n  });\n\n  describe('Cluster Merging', () => {\n    it('should merge overlapping clusters', () => {\n      const cluster1: SignalCluster = {\n        id: 'cluster1',\n        center: { lat: 40.7128, lon: -74.0060 },\n        radius: 50,\n        signals: [\n          {\n            id: '1',\n            timestamp: Date.now(),\n            latitude: 40.7128,\n            longitude: -74.0060,\n            strength: -50,\n            frequency: 2400000000,\n            metadata: {}\n          }\n        ],\n        avgStrength: -50,\n        isSingleSignal: false\n      };\n\n      const cluster2: SignalCluster = {\n        id: 'cluster2',\n        center: { lat: 40.7130, lon: -74.0062 },\n        radius: 50,\n        signals: [\n          {\n            id: '2',\n            timestamp: Date.now(),\n            latitude: 40.7130,\n            longitude: -74.0062,\n            strength: -55,\n            frequency: 2400000000,\n            metadata: {}\n          }\n        ],\n        avgStrength: -55,\n        isSingleSignal: false\n      };\n\n      const merged = clusteringService.mergeClusters([cluster1, cluster2]);\n      \n      expect(merged).toHaveLength(1);\n      expect(merged[0].signals).toHaveLength(2);\n      expect(merged[0].avgStrength).toBe(-52.5);\n    });\n\n    it('should preserve signal metadata during merge', () => {\n      const metadata1 = { device: 'HackRF', antenna: 'Omni' };\n      const metadata2 = { device: 'RTL-SDR', antenna: 'Yagi' };\n\n      const cluster1: SignalCluster = {\n        id: 'cluster1',\n        center: { lat: 40.7128, lon: -74.0060 },\n        radius: 50,\n        signals: [{\n          id: '1',\n          timestamp: Date.now(),\n          latitude: 40.7128,\n          longitude: -74.0060,\n          strength: -50,\n          frequency: 2400000000,\n          metadata: metadata1\n        }],\n        avgStrength: -50,\n        isSingleSignal: false\n      };\n\n      const cluster2: SignalCluster = {\n        id: 'cluster2',\n        center: { lat: 40.7130, lon: -74.0062 },\n        radius: 50,\n        signals: [{\n          id: '2',\n          timestamp: Date.now(),\n          latitude: 40.7130,\n          longitude: -74.0062,\n          strength: -55,\n          frequency: 2400000000,\n          metadata: metadata2\n        }],\n        avgStrength: -55,\n        isSingleSignal: false\n      };\n\n      const merged = clusteringService.mergeClusters([cluster1, cluster2]);\n      \n      expect(merged[0].signals[0].metadata).toEqual(metadata1);\n      expect(merged[0].signals[1].metadata).toEqual(metadata2);\n    });\n\n    it('should update cluster center correctly', () => {\n      const signals: Signal[] = [\n        {\n          id: '1',\n          timestamp: Date.now(),\n          latitude: 40.0,\n          longitude: -74.0,\n          strength: -50,\n          frequency: 2400000000,\n          metadata: {}\n        },\n        {\n          id: '2',\n          timestamp: Date.now(),\n          latitude: 41.0,\n          longitude: -74.0,\n          strength: -50,\n          frequency: 2400000000,\n          metadata: {}\n        }\n      ];\n\n      const clusters = clusteringService.clusterSignals(signals);\n      \n      // Center should be midpoint\n      expect(clusters[0].center.lat).toBeCloseTo(40.5, 5);\n      expect(clusters[0].center.lon).toBeCloseTo(-74.0, 5);\n    });\n\n    it('should handle chain merging (A→B→C)', () => {\n      const signals: Signal[] = [\n        {\n          id: '1',\n          timestamp: Date.now(),\n          latitude: 40.7128,\n          longitude: -74.0060,\n          strength: -50,\n          frequency: 2400000000,\n          metadata: {}\n        },\n        {\n          id: '2',\n          timestamp: Date.now(),\n          latitude: 40.7133,\n          longitude: -74.0065,\n          strength: -55,\n          frequency: 2400000000,\n          metadata: {}\n        },\n        {\n          id: '3',\n          timestamp: Date.now(),\n          latitude: 40.7138,\n          longitude: -74.0070,\n          strength: -60,\n          frequency: 2400000000,\n          metadata: {}\n        }\n      ];\n\n      const clusters = clusteringService.clusterSignals(signals);\n      \n      // All should be in one cluster due to chain proximity\n      expect(clusters).toHaveLength(1);\n      expect(clusters[0].signals).toHaveLength(3);\n    });\n  });\n\n  describe('Performance', () => {\n    it('should cluster 1000 signals in reasonable time', () => {\n      const signals: Signal[] = Array.from({ length: 1000 }, (_, i) => ({\n        id: `${i}`,\n        timestamp: Date.now(),\n        latitude: 40.7128 + (Math.random() - 0.5) * 0.1,\n        longitude: -74.0060 + (Math.random() - 0.5) * 0.1,\n        strength: -50 - Math.random() * 30,\n        frequency: 2400000000,\n        metadata: {}\n      }));\n\n      const startTime = performance.now();\n      const clusters = clusteringService.clusterSignals(signals);\n      const endTime = performance.now();\n\n      expect(endTime - startTime).toBeLessThan(100); // 100ms\n      expect(clusters.length).toBeGreaterThan(0);\n      \n      // Verify no signals lost\n      const totalSignals = clusters.reduce((sum, c) => sum + c.signals.length, 0);\n      expect(totalSignals).toBe(1000);\n    });\n  });\n});",
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/tests/utils/performanceMonitor.ts",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/tests/utils/testDataGenerator.ts",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/tests/visual/visual-regression.test.ts",
+		"messages": [
+			{
+				"ruleId": "@typescript-eslint/no-unused-vars",
+				"severity": 2,
+				"message": "'path' is defined but never used. Allowed unused vars must match /^_/u.",
+				"line": 6,
+				"column": 8,
+				"nodeType": null,
+				"messageId": "unusedVar",
+				"endLine": 6,
+				"endColumn": 12
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 55,
+				"column": 15,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 55,
+				"endColumn": 34
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 66,
+				"column": 17,
+				"nodeType": "VariableDeclarator",
+				"messageId": "anyAssignment",
+				"endLine": 66,
+				"endColumn": 74
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 66,
+				"column": 28,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 66,
+				"endColumn": 41
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .sync on an `error` typed value.",
+				"line": 66,
+				"column": 32,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 66,
+				"endColumn": 36
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 67,
+				"column": 17,
+				"nodeType": "VariableDeclarator",
+				"messageId": "anyAssignment",
+				"endLine": 67,
+				"endColumn": 78
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 67,
+				"column": 30,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 67,
+				"endColumn": 43
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .sync on an `error` typed value.",
+				"line": 67,
+				"column": 34,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 67,
+				"endColumn": 38
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 69,
+				"column": 17,
+				"nodeType": "VariableDeclarator",
+				"messageId": "anyAssignment",
+				"endLine": 69,
+				"endColumn": 51
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 70,
+				"column": 17,
+				"nodeType": "VariableDeclarator",
+				"messageId": "anyAssignment",
+				"endLine": 70,
+				"endColumn": 56
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe construction of a(n) `error` type typed value.",
+				"line": 70,
+				"column": 24,
+				"nodeType": "NewExpression",
+				"messageId": "unsafeNew",
+				"endLine": 70,
+				"endColumn": 56
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 70,
+				"column": 34,
+				"nodeType": "Property",
+				"messageId": "anyAssignment",
+				"endLine": 70,
+				"endColumn": 42
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 70,
+				"column": 44,
+				"nodeType": "Property",
+				"messageId": "anyAssignment",
+				"endLine": 70,
+				"endColumn": 53
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 72,
+				"column": 17,
+				"nodeType": "VariableDeclarator",
+				"messageId": "anyAssignment",
+				"endLine": 79,
+				"endColumn": 12
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 72,
+				"column": 33,
+				"nodeType": "Identifier",
+				"messageId": "unsafeCall",
+				"endLine": 72,
+				"endColumn": 43
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .data on an `error` typed value.",
+				"line": 73,
+				"column": 22,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 73,
+				"endColumn": 26
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .data on an `error` typed value.",
+				"line": 74,
+				"column": 24,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 74,
+				"endColumn": 28
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .data on an `error` typed value.",
+				"line": 75,
+				"column": 18,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 75,
+				"endColumn": 22
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-argument",
+				"severity": 2,
+				"message": "Unsafe argument of type error typed assigned to a parameter of type `string | Stream | ArrayBufferView<ArrayBufferLike> | Iterable<string | ArrayBufferView<ArrayBufferLike>> | AsyncIterable<...>`.",
+				"line": 82,
+				"column": 42,
+				"nodeType": "CallExpression",
+				"messageId": "unsafeArgument",
+				"endLine": 82,
+				"endColumn": 62
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 82,
+				"column": 42,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 82,
+				"endColumn": 56
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .sync on an `error` typed value.",
+				"line": 82,
+				"column": 46,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 82,
+				"endColumn": 50
+			},
+			{
+				"ruleId": "@typescript-eslint/no-explicit-any",
+				"severity": 1,
+				"message": "Unexpected any. Specify a different type.",
+				"line": 88,
+				"column": 25,
+				"nodeType": "TSAnyKeyword",
+				"messageId": "unexpectedAny",
+				"endLine": 88,
+				"endColumn": 28,
+				"suggestions": [
+					{
+						"messageId": "suggestUnknown",
+						"fix": { "range": [3175, 3178], "text": "unknown" },
+						"desc": "Use `unknown` instead, this will force you to explicitly, and safely assert the type is correct."
+					},
+					{
+						"messageId": "suggestNever",
+						"fix": { "range": [3175, 3178], "text": "never" },
+						"desc": "Use `never` instead, this is useful when instantiating generic type parameters that you don't need to know the type of."
+					}
+				]
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .code on an `any` value.",
+				"line": 88,
+				"column": 30,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 88,
+				"endColumn": 34
+			},
+			{
+				"ruleId": "no-console",
+				"severity": 1,
+				"message": "Unexpected console statement. Only these console methods are allowed: warn, error.",
+				"line": 90,
+				"column": 13,
+				"nodeType": "MemberExpression",
+				"messageId": "limited",
+				"endLine": 90,
+				"endColumn": 24,
+				"suggestions": [
+					{
+						"fix": { "range": [3274, 3338], "text": "" },
+						"messageId": "removeConsole",
+						"data": { "propertyName": "log" },
+						"desc": "Remove the console.log()."
+					}
+				]
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 156,
+				"column": 15,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 156,
+				"endColumn": 34
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 160,
+				"column": 15,
+				"nodeType": "VariableDeclarator",
+				"messageId": "anyAssignment",
+				"endLine": 160,
+				"endColumn": 50
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 160,
+				"column": 24,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 160,
+				"endColumn": 37
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .sync on an `error` typed value.",
+				"line": 160,
+				"column": 28,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 160,
+				"endColumn": 32
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 161,
+				"column": 15,
+				"nodeType": "VariableDeclarator",
+				"messageId": "anyAssignment",
+				"endLine": 161,
+				"endColumn": 48
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 161,
+				"column": 23,
+				"nodeType": "MemberExpression",
+				"messageId": "unsafeCall",
+				"endLine": 161,
+				"endColumn": 36
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .sync on an `error` typed value.",
+				"line": 161,
+				"column": 27,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 161,
+				"endColumn": 31
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 163,
+				"column": 15,
+				"nodeType": "VariableDeclarator",
+				"messageId": "anyAssignment",
+				"endLine": 163,
+				"endColumn": 77
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe construction of a(n) `error` type typed value.",
+				"line": 163,
+				"column": 22,
+				"nodeType": "NewExpression",
+				"messageId": "unsafeNew",
+				"endLine": 163,
+				"endColumn": 77
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 163,
+				"column": 32,
+				"nodeType": "Property",
+				"messageId": "anyAssignment",
+				"endLine": 163,
+				"endColumn": 51
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .width on an `error` typed value.",
+				"line": 163,
+				"column": 46,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 163,
+				"endColumn": 51
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 163,
+				"column": 53,
+				"nodeType": "Property",
+				"messageId": "anyAssignment",
+				"endLine": 163,
+				"endColumn": 74
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .height on an `error` typed value.",
+				"line": 163,
+				"column": 68,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 163,
+				"endColumn": 74
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-assignment",
+				"severity": 2,
+				"message": "Unsafe assignment of an error typed value.",
+				"line": 164,
+				"column": 15,
+				"nodeType": "VariableDeclarator",
+				"messageId": "anyAssignment",
+				"endLine": 171,
+				"endColumn": 10
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-call",
+				"severity": 2,
+				"message": "Unsafe call of a(n) `error` type typed value.",
+				"line": 164,
+				"column": 31,
+				"nodeType": "Identifier",
+				"messageId": "unsafeCall",
+				"endLine": 164,
+				"endColumn": 41
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .data on an `error` typed value.",
+				"line": 165,
+				"column": 18,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 165,
+				"endColumn": 22
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .data on an `error` typed value.",
+				"line": 166,
+				"column": 17,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 166,
+				"endColumn": 21
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .data on an `error` typed value.",
+				"line": 167,
+				"column": 16,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 167,
+				"endColumn": 20
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .width on an `error` typed value.",
+				"line": 168,
+				"column": 18,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 168,
+				"endColumn": 23
+			},
+			{
+				"ruleId": "@typescript-eslint/no-unsafe-member-access",
+				"severity": 2,
+				"message": "Unsafe member access .height on an `error` typed value.",
+				"line": 169,
+				"column": 18,
+				"nodeType": "Identifier",
+				"messageId": "unsafeMemberExpression",
+				"endLine": 169,
+				"endColumn": 24
+			}
+		],
+		"suppressedMessages": [],
+		"errorCount": 42,
+		"fatalErrorCount": 0,
+		"warningCount": 2,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"source": "import { describe, it, expect, beforeAll, afterAll } from 'vitest';\nimport puppeteer, { Browser, Page } from 'puppeteer';\nimport pixelmatch from 'pixelmatch';\nimport { PNG } from 'pngjs';\nimport fs from 'fs/promises';\nimport path from 'path';\n\nconst VISUAL_REGRESSION_CONFIG = {\n  threshold: 0.1, // 0.1% difference allowed for pixel-perfect validation\n  baseUrl: process.env.TEST_URL || 'http://localhost:5173',\n  viewports: [\n    { name: 'mobile', width: 375, height: 667 },\n    { name: 'tablet', width: 768, height: 1024 },\n    { name: 'desktop', width: 1920, height: 1080 },\n  ],\n  pages: [\n    { name: 'home', path: '/' },\n    { name: 'spectrum', path: '/spectrum' },\n    { name: 'sweep', path: '/sweep' },\n    { name: 'devices', path: '/devices' },\n    { name: 'map', path: '/map' },\n  ],\n};\n\ndescribe('Visual Regression Tests', () => {\n  let browser: Browser;\n  let page: Page;\n\n  beforeAll(async () => {\n    browser = await puppeteer.launch({\n      headless: true,\n      args: ['--no-sandbox', '--disable-setuid-sandbox'],\n    });\n    page = await browser.newPage();\n    \n    // Ensure baseline directory exists\n    await fs.mkdir('tests/visual/baselines', { recursive: true });\n    await fs.mkdir('tests/visual/screenshots', { recursive: true });\n    await fs.mkdir('tests/visual/diffs', { recursive: true });\n  });\n\n  afterAll(async () => {\n    await browser.close();\n  });\n\n  VISUAL_REGRESSION_CONFIG.pages.forEach(({ name: pageName, path: pagePath }) => {\n    VISUAL_REGRESSION_CONFIG.viewports.forEach(({ name: viewportName, width, height }) => {\n      it(`should match baseline for ${pageName} page on ${viewportName}`, async () => {\n        await page.setViewport({ width, height });\n        await page.goto(`${VISUAL_REGRESSION_CONFIG.baseUrl}${pagePath}`, {\n          waitUntil: 'networkidle0',\n        });\n\n        // Wait for any animations to complete\n        await page.waitForTimeout(1000);\n\n        // Take screenshot\n        const screenshotPath = `tests/visual/screenshots/${pageName}-${viewportName}.png`;\n        await page.screenshot({ path: screenshotPath, fullPage: true });\n\n        // Compare with baseline\n        const baselinePath = `tests/visual/baselines/${pageName}-${viewportName}.png`;\n        const diffPath = `tests/visual/diffs/${pageName}-${viewportName}-diff.png`;\n\n        try {\n          const baseline = PNG.sync.read(await fs.readFile(baselinePath));\n          const screenshot = PNG.sync.read(await fs.readFile(screenshotPath));\n\n          const { width: w, height: h } = baseline;\n          const diff = new PNG({ width: w, height: h });\n\n          const numDiffPixels = pixelmatch(\n            baseline.data,\n            screenshot.data,\n            diff.data,\n            w,\n            h,\n            { threshold: VISUAL_REGRESSION_CONFIG.threshold }\n          );\n\n          if (numDiffPixels > 0) {\n            await fs.writeFile(diffPath, PNG.sync.write(diff));\n            const percentDiff = (numDiffPixels / (w * h)) * 100;\n            expect(percentDiff).toBeLessThan(0.1); // Less than 0.1% difference\n          }\n        } catch (error) {\n          // If baseline doesn't exist, create it\n          if ((error as any).code === 'ENOENT') {\n            await fs.copyFile(screenshotPath, baselinePath);\n            console.log(`Created baseline for ${pageName}-${viewportName}`);\n          } else {\n            throw error;\n          }\n        }\n      });\n    });\n  });\n\n  describe('Component Visual Tests', () => {\n    it('should render spectrum analyzer correctly', async () => {\n      await page.goto(`${VISUAL_REGRESSION_CONFIG.baseUrl}/spectrum`);\n      await page.waitForSelector('.spectrum-canvas', { timeout: 5000 });\n      \n      const spectrumElement = await page.$('.spectrum-canvas');\n      if (spectrumElement) {\n        const screenshot = await spectrumElement.screenshot();\n        const screenshotPath = 'tests/visual/screenshots/spectrum-component.png';\n        await fs.writeFile(screenshotPath, screenshot);\n\n        // Verify canvas dimensions\n        const dimensions = await page.evaluate(() => {\n          const canvas = document.querySelector('.spectrum-canvas') as HTMLCanvasElement;\n          return {\n            width: canvas?.width,\n            height: canvas?.height,\n          };\n        });\n\n        expect(dimensions.width).toBeGreaterThan(0);\n        expect(dimensions.height).toBeGreaterThan(0);\n      }\n    });\n\n    it('should render device cards with correct styling', async () => {\n      await page.goto(`${VISUAL_REGRESSION_CONFIG.baseUrl}/devices`);\n      await page.waitForSelector('.device-card', { timeout: 5000 });\n      \n      const styles = await page.evaluate(() => {\n        const card = document.querySelector('.device-card');\n        if (!card) return null;\n        \n        const computedStyle = window.getComputedStyle(card);\n        return {\n          borderRadius: computedStyle.borderRadius,\n          boxShadow: computedStyle.boxShadow,\n          padding: computedStyle.padding,\n          backgroundColor: computedStyle.backgroundColor,\n        };\n      });\n\n      expect(styles).toBeTruthy();\n      expect(styles?.borderRadius).toBe('0.5rem');\n      expect(styles?.backgroundColor).toBeTruthy();\n    });\n  });\n\n  describe('Animation and Transition Tests', () => {\n    it('should capture hover states correctly', async () => {\n      await page.goto(`${VISUAL_REGRESSION_CONFIG.baseUrl}`);\n      \n      // Find a button to hover\n      const button = await page.$('button');\n      if (button) {\n        const beforeHover = await button.screenshot();\n        await button.hover();\n        await page.waitForTimeout(300); // Wait for transition\n        const afterHover = await button.screenshot();\n\n        // Compare screenshots\n        const before = PNG.sync.read(beforeHover);\n        const after = PNG.sync.read(afterHover);\n        \n        const diff = new PNG({ width: before.width, height: before.height });\n        const numDiffPixels = pixelmatch(\n          before.data,\n          after.data,\n          diff.data,\n          before.width,\n          before.height,\n          { threshold: 0.5 }\n        );\n\n        // There should be some difference due to hover effect\n        expect(numDiffPixels).toBeGreaterThan(0);\n      }\n    });\n  });\n});",
+		"usedDeprecatedRules": []
+	},
+	{
+		"filePath": "/home/pi/projects/ArgosFinal/tests/vitest.config.ts",
+		"messages": [],
+		"suppressedMessages": [],
+		"errorCount": 0,
+		"fatalErrorCount": 0,
+		"warningCount": 0,
+		"fixableErrorCount": 0,
+		"fixableWarningCount": 0,
+		"usedDeprecatedRules": []
+	}
+]

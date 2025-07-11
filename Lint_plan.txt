@@ -1,0 +1,214 @@
+ESLINT ERROR RESOLUTION PLAN WITH SAFETY GUARANTEES
+===================================================
+Total Issues: 2,855 (2,278 errors, 577 warnings)
+Generated: 2025-01-07
+Updated: 2025-01-07 (with safety guarantees and phase notifications)
+
+IMPORTANT SAFETY GUARANTEE
+==========================
+Fixing ESLint issues will NOT affect your application's functionality or appearance.
+
+What the fixes WON'T do:
+- No HTML/CSS modifications
+- No logic or algorithm changes
+- No feature removal
+- No visual or layout changes
+
+What the fixes WILL do:
+- Add TypeScript type annotations (compile-time only)
+- Remove truly unused variables (dead code)
+- Add error handling to prevent crashes
+- Replace console.log with proper logging
+- Make your app MORE stable, not less
+
+PHASE-BY-PHASE EXECUTION PLAN WITH MANDATORY STOP POINTS
+========================================================
+
+PHASE 1: AUTO-FIXABLE ISSUES (30 minutes - 1 hour)
+--------------------------------------------------
+Objective: Fix all automatically fixable issues with zero risk
+
+Actions:
+1. Create git commit before starting: `git add -A && git commit -m "Pre-lint checkpoint"`
+2. Run: `npm run lint:fix`
+3. Review changes with: `git diff`
+4. Run app and verify no visual/functional changes
+5. Commit: `git add -A && git commit -m "Phase 1: Auto-fixed ESLint issues"`
+
+Expected fixes:
+- Formatting issues
+- Some unused variables removal
+- Basic syntax corrections
+- Console statement removals (if configured)
+
+**MANDATORY STOP**: Report results to user
+- Number of issues auto-fixed
+- Files modified count
+- Confirm app still works identically
+- Get approval before Phase 2
+
+PHASE 2: CONFIGURATION & TYPE DEFINITIONS (1-2 hours)
+----------------------------------------------------
+Objective: Fix configuration issues and create base type definitions
+
+Actions:
+1. Update tsconfig.json to include missing files:
+   - app.d.ts
+   - playwright.config.ts
+   - vitest.config.ts
+2. Create type definition files:
+   - src/types/leaflet.d.ts (for Leaflet types)
+   - src/types/signals.d.ts (for signal interfaces)
+   - src/types/system.d.ts (for system info types)
+3. Test with: `npm run check`
+4. Commit: `git add -A && git commit -m "Phase 2: Config and type definitions"`
+
+Expected improvements:
+- 3 configuration errors resolved
+- Foundation for type safety laid
+- No runtime changes
+
+**MANDATORY STOP**: Report results to user
+- Configuration issues resolved
+- Type files created
+- Remaining error count
+- Get approval before Phase 3
+
+PHASE 3: TYPE SAFETY - CORE SERVICES (3-4 hours)
+------------------------------------------------
+Objective: Fix type safety in service layer (highest impact)
+
+Target files (in order):
+1. /src/lib/services/hackrf/api.ts
+2. /src/lib/services/websocket related files
+3. /src/lib/services/data handlers
+
+Actions per file:
+1. Run: `npm run lint src/lib/services/[filename]` to see specific errors
+2. Add TypeScript interfaces for all data structures
+3. Replace all `any` types with proper types
+4. Add null checks where needed
+5. Test each service individually
+6. Commit after each major service file
+
+Safety checks after each file:
+- Run the application
+- Test the specific service functionality
+- Verify data still flows correctly
+
+**MANDATORY STOP**: Report results to user
+- Services updated count
+- Type safety errors reduced by X%
+- List any behavioral concerns (should be none)
+- Get approval before Phase 4
+
+PHASE 4: TYPE SAFETY - COMPONENTS & ROUTES (3-4 hours)
+------------------------------------------------------
+Objective: Fix remaining type safety in UI components
+
+Primary target:
+- /src/routes/tactical-map-simple/+page.svelte (highest error count)
+
+Secondary targets:
+- Other route components
+- Shared UI components
+
+Actions:
+1. Start with tactical-map-simple
+2. Fix one section at a time:
+   - GPS/position handling
+   - Signal management
+   - Kismet device handling
+   - Map interactions
+3. Test map functionality after each section
+4. Move to other components
+5. Commit after each major component
+
+Special attention:
+- Leaflet type imports
+- Event handler typing
+- Component prop interfaces
+
+**MANDATORY STOP**: Report results to user
+- Components updated
+- Major error reduction achieved
+- Confirm all UI elements work identically
+- Get approval before Phase 5
+
+PHASE 5: FINAL CLEANUP & VALIDATION (1 hour)
+--------------------------------------------
+Objective: Handle remaining issues and validate complete fix
+
+Actions:
+1. Fix remaining async/promise issues
+2. Handle any remaining undefined variables
+3. Run full lint check: `npm run lint`
+4. Run full test suite: `npm test`
+5. Do comprehensive app testing
+6. Final commit: `git add -A && git commit -m "Phase 5: ESLint cleanup complete"`
+
+Final validation:
+- All critical errors resolved
+- App functionality unchanged
+- Performance potentially improved
+- Code maintainability greatly improved
+
+**FINAL REPORT**: 
+- Total errors fixed
+- Warnings remaining (if any)
+- Performance observations
+- Maintenance improvements
+
+ERROR PRIORITY REFERENCE
+========================
+
+PRIORITY 1: CRITICAL TYPE SAFETY ISSUES (1,287 errors)
+- @typescript-eslint/no-unsafe-member-access (894 errors)
+- @typescript-eslint/no-unsafe-assignment (494 errors)
+- @typescript-eslint/no-unsafe-call (316 errors)
+- @typescript-eslint/no-unsafe-argument (134 errors)
+- @typescript-eslint/no-unsafe-return (33 errors)
+
+PRIORITY 2: CODE QUALITY ISSUES (617 errors/warnings)
+- @typescript-eslint/no-explicit-any (226 warnings)
+- @typescript-eslint/no-unused-vars (128 errors)
+- @typescript-eslint/no-non-null-assertion (100 warnings)
+- no-unused-vars (63 errors)
+
+PRIORITY 3: ASYNC/PROMISE ISSUES (89 errors)
+- @typescript-eslint/require-await (36 errors)
+- @typescript-eslint/no-floating-promises (33 errors)
+- @typescript-eslint/await-thenable (20 errors)
+
+PRIORITY 4: CONSOLE & CONTROL FLOW (296 warnings)
+- no-console (251 warnings)
+- no-case-declarations (45 warnings)
+
+PRIORITY 5: UNDEFINED & MISC ISSUES (51 errors)
+- no-undef (34 errors)
+- @typescript-eslint/no-misused-promises (16 errors)
+- Configuration Issues (3 errors)
+
+ROLLBACK PROCEDURE
+==================
+If any phase causes issues:
+1. `git log --oneline` to see phase commits
+2. `git reset --hard [commit-before-problematic-phase]`
+3. Report the specific issue encountered
+4. Adjust approach and retry
+
+IMPORTANT REMINDERS
+===================
+1. NEVER proceed to next phase without user approval
+2. ALWAYS test application after major changes
+3. STOP immediately if any functionality changes
+4. Report any unexpected behavior
+5. Each phase builds on the previous - don't skip
+
+SUCCESS CRITERIA
+================
+- All Priority 1 type safety issues resolved
+- Zero functionality changes
+- Zero visual changes
+- App runs identically but more safely
+- Code is more maintainable for future development

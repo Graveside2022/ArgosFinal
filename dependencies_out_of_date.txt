@@ -1,0 +1,195 @@
+# Outdated Dependency Report
+# Generated: 2025-01-07
+
+## Overview
+This document lists all outdated dependencies in the `ArgosFinal` project, as verified by `ref_search_documentation` and `google_search`. Each entry includes the current version, the latest stable version, and the command to update the package.
+
+---
+
+## devDependencies (Tools for Development)
+
+**@playwright/test**
+- **Current:** ^1.40.1
+- **Latest:**  1.53.2
+- **Command:** `npm install -D @playwright/test@latest`
+
+**@sveltejs/adapter-auto**
+- **Current:** ^3.0.0
+- **Latest:**  6.0.1
+- **Command:** `npm install -D @sveltejs/adapter-auto@latest`
+
+**@sveltejs/vite-plugin-svelte**
+- **Current:** ^3.1.2
+- **Latest:**  5.1.0
+- **Command:** `npm install -D @sveltejs/vite-plugin-svelte@latest`
+
+**@testing-library/jest-dom**
+- **Current:** ^6.1.5
+- **Latest:**  6.6.3
+- **Command:** `npm install -D @testing-library/jest-dom@latest`
+
+**@testing-library/svelte**
+- **Current:** ^4.0.5
+- **Latest:**  5.2.8
+- **Command:** `npm install -D @testing-library/svelte@latest`
+
+**@types/node**
+- **Current:** ^20.0.0
+- **Latest:**  24.0.10
+- **Command:** `npm install -D @types/node@latest`
+
+**@types/ws**
+- **Current:** ^8.5.10
+- **Latest:**  8.18.1
+- **Command:** `npm install -D @types/ws@latest`
+
+**@typescript-eslint/eslint-plugin**
+- **Current:** ^8.35.1
+- **Latest:**  8.36.0
+- **Command:** `npm install -D @typescript-eslint/eslint-plugin@latest`
+
+**@typescript-eslint/parser**
+- **Current:** ^8.35.1
+- **Latest:**  8.36.0
+- **Command:** `npm install -D @typescript-eslint/parser@latest`
+
+**@vitest/coverage-v8**
+- **Current:** ^1.1.0
+- **Latest:**  3.2.4
+- **Command:** `npm install -D @vitest/coverage-v8@latest`
+
+**@vitest/ui**
+- **Current:** ^1.1.0
+- **Latest:**  3.2.4
+- **Command:** `npm install -D @vitest/ui@latest`
+
+**autoprefixer**
+- **Current:** ^10.4.16
+- **Latest:**  10.4.21
+- **Command:** `npm install -D autoprefixer@latest`
+
+**css-tree**
+- **Current:** ^2.3.1
+- **Latest:**  3.1.0
+- **Command:** `npm install -D css-tree@latest`
+
+**eslint-config-prettier**
+- **Current:** ^10.1.5
+- **Latest:**  9.1.0
+- **Command:** `npm install -D eslint-config-prettier@latest`
+
+**husky**
+- **Current:** ^8.0.3
+- **Latest:**  9.1.7
+- **Command:** `npm install -D husky@latest`
+
+**jsdom**
+- **Current:** ^23.0.1
+- **Latest:**  26.1.0
+- **Command:** `npm install -D jsdom@latest`
+
+**lint-staged**
+- **Current:** ^15.0.0
+- **Latest:**  16.1.2
+- **Command:** `npm install -D lint-staged@latest`
+
+**pixelmatch**
+- **Current:** ^5.3.0
+- **Latest:**  7.1.0
+- **Command:** `npm install -D pixelmatch@latest`
+
+**pngjs**
+- **Current:** ^6.0.0
+- **Latest:**  7.0.0
+- **Command:** `npm install -D pngjs@latest`
+
+**postcss**
+- **Current:** ^8.4.32
+- **Latest:**  8.5.6
+- **Command:** `npm install -D postcss@latest`
+
+**prettier**
+- **Current:** ^3.0.0
+- **Latest:**  3.6.2
+- **Command:** `npm install -D prettier@latest`
+
+**prettier-plugin-svelte**
+- **Current:** ^3.0.0
+- **Latest:**  3.2.5
+- **Command:** `npm install -D prettier-plugin-svelte@latest`
+
+**svelte-check**
+- **Current:** ^3.6.0
+- **Latest:**  4.2.2
+- **Command:** `npm install -D svelte-check@latest`
+
+**tslib**
+- **Current:** ^2.4.1
+- **Latest:**  2.8.1
+- **Command:** `npm install -D tslib@latest`
+
+**tsx**
+- **Current:** ^4.7.0
+- **Latest:**  4.20.3
+- **Command:** `npm install -D tsx@latest`
+
+**vitest**
+- **Current:** ^1.1.0
+- **Latest:**  3.2.4
+- **Command:** `npm install -D vitest@latest`
+
+---
+
+## dependencies (Application Libraries)
+
+**@tailwindcss/forms**
+- **Current:** ^0.5.7
+- **Latest:**  0.5.10
+- **Command:** `npm install @tailwindcss/forms@latest`
+
+**cytoscape**
+- **Current:** ^3.32.0
+- **Latest:**  3.32.1
+- **Command:** `npm install cytoscape@latest`
+
+---
+
+## Risk Analysis for Dependency Updates
+
+Updating dependencies is crucial for security and features, but it is not without risk. A structured approach is required. The risks can be categorized into three levels.
+
+### High-Risk Updates (Major Version Changes)
+
+These updates are the most likely to cause breaking changes. They often involve significant API modifications, removal of features, or changes in behavior.
+
+- **`@sveltejs/adapter-auto` (3.x -> 6.x):** A major version jump in an adapter can signify fundamental changes in how the application is built and deployed. This could require changes to `svelte.config.js` and potentially affect the output in the `.svelte-kit` directory.
+- **`@sveltejs/vite-plugin-svelte` (3.x -> 5.x):** This is a critical build tool. A major update could introduce new compilation behavior, change how styles or scripts are processed, and require updates to `vite.config.js`.
+- **`vitest` (1.x -> 3.x):** A major update to a testing framework almost always includes breaking changes to its API, configuration, or assertion behavior. Existing tests may fail and require significant refactoring.
+- **`husky` (8.x -> 9.x):** Version 9 of Husky introduced a significant change in how it's configured. The old `.huskyrc` or `package.json` configuration will no longer work, and a new setup using the `husky` command is required.
+
+### Medium-Risk Updates (Minor Version Changes & Core Tooling)
+
+These updates are less likely to have direct breaking API changes, but they can introduce subtle bugs or changes in behavior that affect the project.
+
+- **`@playwright/test` (1.40 -> 1.53):** While not a major version change, a jump of 13 minor versions can introduce new APIs, deprecate old ones, and alter testing behavior.
+- **`jsdom` (23.x -> 26.x):** Changes in how JSDOM emulates the browser environment for tests can cause previously passing tests to fail.
+- **`@typescript-eslint/*` (8.35 -> 8.36):** While a minor update, changes to linting rules can introduce a large number of new errors that need to be addressed, expanding the scope of the current refactor.
+- **`prettier` (3.0 -> 3.6):** Prettier can introduce subtle formatting changes even in minor versions, which could require re-formatting the entire project to pass CI checks.
+
+### Low-Risk Updates (Patches & Type Definitions)
+
+These updates are generally safe and are focused on bug fixes and non-breaking additions.
+
+- **`cytoscape` (3.32.0 -> 3.32.1):** This is a patch release and should be very safe to apply.
+- **`@types/*` packages:** Updates to type definition packages are almost always safe, as they only affect compile-time type checking and do not change the runtime behavior of the code.
+- **`@tailwindcss/forms`:** This is a minor update and is unlikely to cause issues.
+
+---
+
+## Recommended Update Strategy
+
+1.  **Prerequisite:** Complete the ESLint refactor as outlined in `Lint_plan.txt`. A stable, type-safe codebase is essential before introducing the variable of new package versions.
+2.  **Isolate:** Create a new branch for this work (e.g., `git checkout -b feature/dependency-updates`). Do not perform these updates on your main branch.
+3.  **Increment:** Update packages one at a time, not all at once. Start with the lowest-risk packages first (e.g., `@tailwindcss/forms`, `cytoscape`).
+4.  **Verify:** After each individual `npm install`, run the full test suite (`npm test`). If the tests pass, commit that single change with a clear message (e.g., `chore: update @tailwindcss/forms to 0.5.10`). If tests fail, investigate the cause before proceeding.
+5.  **Read Changelogs:** For any high-risk (major version) update, read the library's official changelog or migration guide before attempting the update. This will prepare you for any breaking changes.

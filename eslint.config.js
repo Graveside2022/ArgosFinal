@@ -33,7 +33,8 @@ export default [
 			globals: {
 				...globals.browser,
 				...globals.node,
-				...globals.es2022
+				...globals.es2022,
+				NodeJS: 'readonly'
 			}
 		},
 		rules: {

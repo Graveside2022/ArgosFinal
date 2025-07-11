@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount, onDestroy } from 'svelte';
 	import { kismetStore } from '$lib/stores/kismet';
-	
+
 	let stats = {
 		totalDevices: 0,
 		totalNetworks: 0,
@@ -11,37 +11,37 @@
 		uptime: '00:00:00',
 		lastUpdate: new Date()
 	};
-	
+
 	let unsubscribe: () => void;
-	let updateInterval: number;
-	
+	let updateInterval: NodeJS.Timeout;
+
 	onMount(() => {
-		unsubscribe = kismetStore.subscribe($store => {
+		unsubscribe = kismetStore.subscribe(($store) => {
 			// Update stats from store
 			stats.totalDevices = $store.devices.length;
 			stats.totalNetworks = $store.networks.length;
-			
+
 			// Count active devices (seen in last 5 minutes)
 			const fiveMinutesAgo = Date.now() / 1000 - 300;
-			stats.activeDevices = $store.devices.filter(d => d.last_seen > fiveMinutesAgo).length;
-			
+			stats.activeDevices = $store.devices.filter((d) => d.last_seen > fiveMinutesAgo).length;
+
 			stats.lastUpdate = new Date();
 		});
-		
+
 		// Update uptime counter every second
 		updateInterval = setInterval(() => {
 			updateUptime();
 		}, 1000);
-		
+
 		// Simulate packet rate updates
 		simulatePacketStats();
 	});
-	
+
 	onDestroy(() => {
 		if (unsubscribe) unsubscribe();
 		if (updateInterval) clearInterval(updateInterval);
 	});
-	
+
 	function updateUptime() {
 		const kismetStatus = kismetStore.getStatus();
 		if (kismetStatus.kismet_running && kismetStatus.startTime) {
@@ -54,23 +54,24 @@
 			stats.uptime = '00:00:00';
 		}
 	}
-	
+
 	function simulatePacketStats() {
 		// In a real implementation, these would come from Kismet
 		setInterval(() => {
 			if (kismetStore.getStatus().kismet_running) {
 				stats.packetsPerSecond = Math.floor(Math.random() * 500) + 100;
-				const dataRate = (Math.random() * 2048) + 512; // KB/s
-				stats.dataRate = dataRate > 1024 
-					? `${(dataRate / 1024).toFixed(1)} MB/s`
-					: `${dataRate.toFixed(0)} KB/s`;
+				const dataRate = Math.random() * 2048 + 512; // KB/s
+				stats.dataRate =
+					dataRate > 1024
+						? `${(dataRate / 1024).toFixed(1)} MB/s`
+						: `${dataRate.toFixed(0)} KB/s`;
 			} else {
 				stats.packetsPerSecond = 0;
 				stats.dataRate = '0 KB/s';
 			}
 		}, 2000);
 	}
-	
+
 	function formatNumber(num: number): string {
 		return num.toLocaleString();
 	}
@@ -83,7 +84,7 @@
 			Updated {stats.lastUpdate.toLocaleTimeString()}
 		</span>
 	</div>
-	
+
 	<div class="stats-grid">
 		<div class="stat-card">
 			<div class="stat-icon">📊</div>
@@ -93,7 +94,7 @@
 			</div>
 			<div class="stat-indicator" class:positive={stats.totalDevices > 0}></div>
 		</div>
-		
+
 		<div class="stat-card">
 			<div class="stat-icon">📡</div>
 			<div class="stat-content">
@@ -102,7 +103,7 @@
 			</div>
 			<div class="stat-indicator" class:positive={stats.totalNetworks > 0}></div>
 		</div>
-		
+
 		<div class="stat-card">
 			<div class="stat-icon">🟢</div>
 			<div class="stat-content">
@@ -111,7 +112,7 @@
 			</div>
 			<div class="stat-indicator" class:positive={stats.activeDevices > 0}></div>
 		</div>
-		
+
 		<div class="stat-card">
 			<div class="stat-icon">📦</div>
 			<div class="stat-content">
@@ -120,7 +121,7 @@
 			</div>
 			<div class="stat-indicator animated" class:positive={stats.packetsPerSecond > 0}></div>
 		</div>
-		
+
 		<div class="stat-card">
 			<div class="stat-icon">📈</div>
 			<div class="stat-content">
@@ -129,7 +130,7 @@
 			</div>
 			<div class="stat-indicator animated" class:positive={stats.dataRate !== '0 KB/s'}></div>
 		</div>
-		
+
 		<div class="stat-card">
 			<div class="stat-icon">⏱️</div>
 			<div class="stat-content">
@@ -139,17 +140,14 @@
 			<div class="stat-indicator" class:positive={stats.uptime !== '00:00:00'}></div>
 		</div>
 	</div>
-	
+
 	<div class="stats-footer">
 		<div class="channel-distribution">
 			<h4>Channel Distribution</h4>
 			<div class="channel-bars">
 				{#each Array(14) as _, i}
 					<div class="channel-bar" title="Channel {i + 1}">
-						<div 
-							class="channel-fill" 
-							style="height: {Math.random() * 80 + 20}%"
-						></div>
+						<div class="channel-fill" style="height: {Math.random() * 80 + 20}%"></div>
 						<span class="channel-num">{i + 1}</span>
 					</div>
 				{/each}
@@ -268,11 +266,7 @@
 	}
 
 	.stat-indicator.positive {
-		background: linear-gradient(90deg, 
-			transparent 0%, 
-			#44ff44 50%, 
-			transparent 100%
-		);
+		background: linear-gradient(90deg, transparent 0%, #44ff44 50%, transparent 100%);
 		box-shadow: 0 0 10px #44ff44;
 	}
 
@@ -281,8 +275,13 @@
 	}
 
 	@keyframes indicator-pulse {
-		0%, 100% { opacity: 0.5; }
-		50% { opacity: 1; }
+		0%,
+		100% {
+			opacity: 0.5;
+		}
+		50% {
+			opacity: 1;
+		}
 	}
 
 	.stats-footer {

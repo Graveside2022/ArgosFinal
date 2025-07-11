@@ -171,7 +171,7 @@
 			lat: number;
 			lon: number;
 		};
-		_clearTimeout?: number;
+		_clearTimeout?: NodeJS.Timeout;
 	}
 
 	// Component state
@@ -197,14 +197,14 @@
 	let accuracy = 0;
 	let satellites = 0;
 	let fixType = 'No';
-	let positionInterval: number | null = null;
+	let positionInterval: NodeJS.Timeout | null = null;
 	let currentCountry = { name: 'Unknown', flag: '🌍' };
 	let formattedCoords = { lat: '0.000000°N', lon: '0.000000°E' };
 	let mgrsCoord = 'Invalid';
 
 	// System info for Pi popup
 	let systemInfo: SystemInfo | null = null;
-	let _systemInfoInterval: number | null = null;
+	let _systemInfoInterval: NodeJS.Timeout | null = null;
 
 	// Signal storage
 	const signals = new Map<string, SimplifiedSignal>();
@@ -214,7 +214,7 @@
 	// Kismet device storage
 	const kismetDevices = new Map<string, KismetDevice>();
 	const kismetMarkers = new Map<string, LeafletMarker>();
-	let kismetInterval: number | null = null;
+	let kismetInterval: NodeJS.Timeout | null = null;
 	let kismetDeviceCount = 0; // Reactive counter for Kismet devices
 	let whitelistedMACs = new Set<string>(); // Store whitelisted MAC addresses
 	let whitelistedDeviceCount = 0; // Reactive counter for whitelisted devices
@@ -237,7 +237,7 @@
 
 	// Subscriptions
 	let spectrumUnsubscribe: (() => void) | null = null;
-	let updateInterval: number | null = null;
+	let updateInterval: NodeJS.Timeout | null = null;
 
 	// Constants
 	const _MAX_SIGNALS_PER_FREQUENCY = 1; // Maximum 1 signal per unique frequency
@@ -840,25 +840,31 @@
 							closeOnClick: false
 						});
 
-						marker.on('click', function () {
-							(this as LeafletMarker).openPopup();
+						marker.on('click', () => {
+							if (marker) {
+								marker.openPopup();
+							}
 						});
 
-						marker.addTo(map);
+						if (map) {
+							marker.addTo(map);
+						}
 						kismetMarkers.set(markerId, marker);
 					} else {
 						// Update existing marker
 						const iconColor = getSignalColor(device.signal?.last_signal || -100);
 						const deviceIconSVG = getDeviceIconSVG(device, iconColor);
 
-						marker.setIcon(
-							L.divIcon({
-								html: deviceIconSVG,
-								iconSize: [30, 30],
-								iconAnchor: [15, 15],
-								className: 'kismet-marker'
-							})
-						);
+						if (marker) {
+							marker.setIcon(
+								L.divIcon({
+									html: deviceIconSVG,
+									iconSize: [30, 30],
+									iconAnchor: [15, 15],
+									className: 'kismet-marker'
+								})
+							);
+						}
 
 						// Update popup if needed
 						const popupContent = `
@@ -1039,8 +1045,8 @@
 				});
 
 				// Add click handler to ensure popup stays open
-				marker.on('click', function () {
-					(this as LeafletCircleMarker).openPopup();
+				marker.on('click', () => {
+					marker.openPopup();
 				});
 
 				if (map) {
@@ -1171,21 +1177,21 @@
 	onMount(async () => {
 		// Import Leaflet dynamically on client side
 		const leafletModule = await import('leaflet');
-		L = leafletModule.default;
+		L = leafletModule.default as unknown as LeafletLibrary;
 		await import('leaflet/dist/leaflet.css');
 
 		// Start GPS updates (map will initialize after GPS fix)
 		void updateGPSPosition();
-		positionInterval = window.setInterval(() => void updateGPSPosition(), 5000); // Update every 5 seconds
+		positionInterval = setInterval(() => void updateGPSPosition(), 5000); // Update every 5 seconds
 
 		connectToHackRF();
 
 		// Start update interval
-		updateInterval = window.setInterval(processSignals, UPDATE_RATE);
+		updateInterval = setInterval(processSignals, UPDATE_RATE);
 
 		// Start fetching Kismet devices every 10 seconds
 		void fetchKismetDevices();
-		kismetInterval = window.setInterval(() => void fetchKismetDevices(), 10000);
+		kismetInterval = setInterval(() => void fetchKismetDevices(), 10000);
 	});
 
 	onDestroy(() => {

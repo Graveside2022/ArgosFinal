@@ -375,28 +375,6 @@
 		--mission-glow: rgba(6, 182, 212, 0.3);
 	}
 
-	.mission-dev {
-		--mission-color: #a855f7;
-		--mission-glow: rgba(168, 85, 247, 0.3);
-	}
-
-	/* Dev Tools Section */
-	.dev-tools-section {
-		margin-top: 5rem;
-		padding-top: 3rem;
-		border-top: 1px solid rgba(255, 255, 255, 0.1);
-	}
-
-	.dev-tools-section .section-title {
-		text-align: center;
-		font-size: 1.5rem;
-		font-weight: 600;
-		color: var(--text-primary);
-		margin-bottom: 2rem;
-		text-transform: uppercase;
-		letter-spacing: 0.1em;
-	}
-
 	/* Mission Icons */
 	.mission-icon {
 		width: 64px;

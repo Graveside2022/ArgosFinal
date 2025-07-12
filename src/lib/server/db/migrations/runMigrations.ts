@@ -2,7 +2,7 @@ import Database from 'better-sqlite3';
 import { readFileSync, readdirSync } from 'fs';
 import { join } from 'path';
 
-export function runMigrations(db: Database.Database, migrationsPath: string) {
+export async function runMigrations(db: Database.Database, migrationsPath: string) {
 	// Create migrations tracking table if not exists
 	db.exec(`
     CREATE TABLE IF NOT EXISTS migrations (
@@ -19,25 +19,70 @@ export function runMigrations(db: Database.Database, migrationsPath: string) {
 		)
 	);
 
-	// Get all migration files
+	// Get all migration files (SQL and TypeScript, but exclude the migration runner itself)
 	const migrationFiles = readdirSync(migrationsPath)
-		.filter((file) => file.endsWith('.sql'))
+		.filter(
+			(file) => (file.endsWith('.sql') || file.endsWith('.ts')) && file !== 'runMigrations.ts'
+		)
 		.sort(); // Ensure migrations run in order
 
 	// Apply pending migrations
-	const applyMigration = db.transaction((filename: string, sql: string) => {
-		db.exec(sql);
-		db.prepare('INSERT INTO migrations (filename, applied_at) VALUES (?, ?)').run(
-			filename,
-			Date.now()
-		);
-		// Migration applied successfully
+	const applyMigration = db.transaction((filename: string, migrationFn: () => void) => {
+		try {
+			migrationFn();
+			db.prepare('INSERT INTO migrations (filename, applied_at) VALUES (?, ?)').run(
+				filename,
+				Date.now()
+			);
+			console.error(`Migration applied: ${filename}`);
+		} catch (error) {
+			console.error(`Migration failed: ${filename}`, error);
+			throw error;
+		}
 	});
 
 	for (const filename of migrationFiles) {
 		if (!appliedMigrations.has(filename)) {
-			const sql = readFileSync(join(migrationsPath, filename), 'utf-8');
-			applyMigration(filename, sql);
+			console.error(`Applying migration: ${filename}`);
+
+			if (filename.endsWith('.sql')) {
+				// SQL migration
+				const sql = readFileSync(join(migrationsPath, filename), 'utf-8');
+				applyMigration(filename, () => {
+					try {
+						db.exec(sql);
+					} catch (error) {
+						// Handle common SQLite errors that can be safely ignored
+						if (
+							error &&
+							typeof error === 'object' &&
+							'code' in error &&
+							error.code === 'SQLITE_ERROR' &&
+							'message' in error &&
+							typeof error.message === 'string' &&
+							error.message.includes('duplicate column name')
+						) {
+							console.error(`Column already exists in ${filename}, skipping...`);
+							return;
+						}
+						// Re-throw other errors
+						throw error;
+					}
+				});
+			} else if (filename.endsWith('.ts')) {
+				// TypeScript migration
+				try {
+					const migrationModule = await import(join(migrationsPath, filename));
+					if (migrationModule.migrate && typeof migrationModule.migrate === 'function') {
+						applyMigration(filename, () => migrationModule.migrate(db));
+					} else {
+						console.error(`Migration ${filename} does not export a migrate function`);
+					}
+				} catch (error) {
+					console.error(`Failed to load TypeScript migration ${filename}:`, error);
+					throw error;
+				}
+			}
 		}
 	}
 }

@@ -4,13 +4,8 @@
  */
 
 import Database from 'better-sqlite3';
-import { readFileSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
 import type { Database as DatabaseType } from 'better-sqlite3';
 import { logInfo, logError, logWarn as _logWarn } from '$lib/utils/logger';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
 
 interface CleanupConfig {
 	// Retention periods in milliseconds
@@ -66,20 +61,29 @@ export class DatabaseCleanupService {
 			...config
 		};
 
-		this.initializeMigrations();
-		this.prepareStatements();
+		// Don't prepare statements in constructor - defer until initialize() is called
+		// This allows the main database to run migrations first
 	}
 
 	/**
-	 * Initialize database migrations
+	 * Initialize the cleanup service (prepare statements)
+	 * This should be called after the main database migrations are complete
 	 */
-	private initializeMigrations() {
+	initialize() {
 		try {
-			const migrationPath = join(__dirname, 'migrations', '001_add_cleanup_features.sql');
-			const migration = readFileSync(migrationPath, 'utf-8');
-			this.db.exec(migration);
+			this.prepareStatements();
+			logInfo(
+				'Database cleanup service initialized successfully',
+				{},
+				'cleanup-service-initialized'
+			);
 		} catch (error) {
-			logError('Failed to apply migrations', { error }, 'cleanup-migrations-failed');
+			logError(
+				'Failed to initialize cleanup service',
+				{ error },
+				'cleanup-service-init-failed'
+			);
+			throw error;
 		}
 	}
 
@@ -143,7 +147,7 @@ export class DatabaseCleanupService {
         AVG(power) as avg_power,
         MIN(power) as min_power,
         MAX(power) as max_power,
-        MODE() WITHIN GROUP (ORDER BY frequency) as dominant_frequency,
+        AVG(frequency) as dominant_frequency,
         (MAX(latitude) - MIN(latitude)) * (MAX(longitude) - MIN(longitude)) * 111 * 111 as coverage_area
       FROM signals
       WHERE timestamp >= ? AND timestamp < ?
@@ -192,7 +196,7 @@ export class DatabaseCleanupService {
         COUNT(*) as signal_count,
         COUNT(DISTINCT device_id) as unique_devices,
         AVG(power) as avg_power,
-        MODE() WITHIN GROUP (ORDER BY source) as dominant_source
+        MIN(source) as dominant_source
       FROM signals
       WHERE timestamp >= ? AND timestamp < ?
       GROUP BY 
@@ -208,6 +212,11 @@ export class DatabaseCleanupService {
 	 */
 	start() {
 		if (this.isRunning) return;
+
+		// Ensure service is initialized before starting
+		if (this.statements.size === 0) {
+			this.initialize();
+		}
 
 		this.isRunning = true;
 

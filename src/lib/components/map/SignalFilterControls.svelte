@@ -22,7 +22,7 @@
 		aggregationMethod: 'weighted',
 		timeWindow: 30000 as number,
 		maxSignalsPerArea: 10,
-		priorityMode: 'anomalous',
+		priorityMode: 'anomalous' as 'strongest' | 'newest' | 'persistent' | 'anomalous',
 		droneFrequencies: true,
 		movingSignalsOnly: false
 	};
@@ -35,7 +35,7 @@
 			options: {
 				droneFrequencies: true,
 				minPower: -70,
-				priorityMode: 'anomalous',
+				priorityMode: 'anomalous' as 'strongest' | 'newest' | 'persistent' | 'anomalous',
 				movingSignalsOnly: false,
 				maxSignalsPerArea: 20
 			}
@@ -45,7 +45,7 @@
 			description: 'Show only strongest and most anomalous signals',
 			options: {
 				minPower: -60,
-				priorityMode: 'strongest',
+				priorityMode: 'strongest' as 'strongest' | 'newest' | 'persistent' | 'anomalous',
 				maxSignalsPerArea: 5,
 				timeWindow: 10000
 			}
@@ -56,7 +56,7 @@
 			options: {
 				movingSignalsOnly: true,
 				minPower: -75,
-				priorityMode: 'newest',
+				priorityMode: 'newest' as 'strongest' | 'newest' | 'persistent' | 'anomalous',
 				timeWindow: 60000
 			}
 		},
@@ -66,7 +66,7 @@
 			options: {
 				gridSize: 100,
 				maxSignalsPerArea: 3,
-				aggregationMethod: 'max',
+				aggregationMethod: 'max' as 'max' | 'avg' | 'density' | 'weighted',
 				minPower: -70
 			}
 		}
@@ -88,7 +88,7 @@
 	function applyPreset(presetKey: string) {
 		if (presetKey in filterPresets) {
 			const preset = filterPresets[presetKey as keyof typeof filterPresets];
-			filterOptions = { ...filterOptions, ...preset.options };
+			filterOptions = { ...filterOptions, ...preset.options } as FilteringOptions;
 			selectedPreset = presetKey;
 			applyFilters();
 		}
@@ -399,7 +399,7 @@
 									type="number"
 									min="5"
 									max="300"
-									value={filterOptions.timeWindow / 1000}
+									value={(filterOptions.timeWindow || 30000) / 1000}
 									on:change={(e) => {
 										filterOptions.timeWindow =
 											parseInt(e.currentTarget.value) * 1000;

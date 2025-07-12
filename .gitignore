@@ -104,6 +104,7 @@ temp/
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+vite.config.ts.timestamp-*.mjs
 
 # TypeScript
 *.tsbuildinfo
@@ -192,14 +193,24 @@ sweep-test.log
 test-results/
 playwright-report/
 playwright/.cache/
+audit-report.json
 
 # Claude-related scripts and development artifacts
 claude-*.sh
 test-*.sh
+test-*.js
+test-*.cjs
+test-*.html
 *.log
 dev-*.log
 CLAUDE.md
+CLAUDE.local.md
 .claude/
+svelte-errors.log
+svelte-errors-full.log
+docker-deployment.log
+keepalive.log
+sweep-test-log.txt
 
 # Orchestrator directory
 orchestrator/
@@ -212,6 +223,7 @@ code_improvement_analysis.md
 codebase_improvement_restored.md
 current_schema*.sql
 dependency_audit.txt
+dependencies_out_of_date.txt
 fk_*.txt
 indices_list.txt
 tables_list.txt
@@ -222,9 +234,54 @@ organization_framework.md
 typescript_errors_and_solutions.md
 ORCHESTRATOR_CONFIGURATION_REFERENCE.*
 hooks.json
+ArgosFinal Migration Project.md
+Lint_plan.txt
+
+# Initiative files
+hookplanning.txt
+initiative*.md
+initiative13_CI_CD.md
+initiative16_sveltekit_errors.md
+initiative17_SSR_INVESTIGATION.md
+initiative18_SSR_DIAGNOSTIC.md
+initiative19_SSR_FINAL_DIAGNOSIS.md
+initiative20_CI_CD_Plan.md
+initiative21_CLICD_Workflow_Plans.md
+initiative22_CLICD_Refinement.md
+notes_*.md
+debug_*.md
+troubleshooting_*.md
+TASKS*.md
+TASK_*.md
+TASK_*_STATUS.md
+STRATEGY*.md
+SSR_*.md
+FAILED_*.md
+
+# Additional development files
+ArgosFinal_backup.tar.gz
+CODEBASE_IMPROVEMENT_PLAN.md
+SESSION_CONTINUITY.md
+ESLint_Status_Report.txt
+ESLint_final.txt
+eslint_*.json
+page_eslint_results.json
+ESLint_*.txt
+check_eslint.cjs
+quick_eslint_count.cjs
+simple_validate.cjs
+validate_mission_control.cjs
+GITHUB_INTEGRATION_PLAN.md
+GRADE_A_PLUS_COMPLETION.md
+LEARNED_CORRECTIONS.md
+console for CLAUDE (CAUTION).txt
+console for CLAUDE.txt
+PLAN_*.md
+TODO*.md
 
 # Docker images
 *.tar
+!docker-images/*.tar
 
 # Backup files
 *.backup
@@ -233,6 +290,10 @@ hooks.json
 *~
 .*.swp
 .*.swo
+package.json.backup
+rf_signals.db.backup-*
+hackrfbackup.html
+hackrfbackup.svelte
 
 # Database files
 *.db
@@ -241,3 +302,5 @@ hooks.json
 *.db-wal
 !rf_signals.db
 !orchestrator/knowledge/knowledge.db
+signals.db
+knowledge_base.db

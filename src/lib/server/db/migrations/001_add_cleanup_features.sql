@@ -1,15 +1,8 @@
 -- Migration 001: Add Cleanup and Optimization Features
 -- This migration adds aggregation tables, cleanup triggers, and maintenance views
 
--- Check if migration has already been applied
-CREATE TABLE IF NOT EXISTS migrations (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT UNIQUE NOT NULL,
-    applied_at INTEGER DEFAULT (strftime('%s', 'now') * 1000)
-);
-
--- Only proceed if this migration hasn't been applied
-INSERT OR IGNORE INTO migrations (name) VALUES ('001_add_cleanup_features');
+-- The migrations table is managed by the migration runner
+-- Migration will be tracked automatically when applied
 
 -- ============================================
 -- ADD MISSING COLUMNS (if they don't exist)
@@ -192,8 +185,9 @@ WHERE expires_at IS NOT NULL
   AND expires_at < strftime('%s', 'now') * 1000;
 
 -- Cleanup candidates
+DROP VIEW IF EXISTS signals_to_delete;
 CREATE VIEW IF NOT EXISTS signals_to_delete AS
-SELECT signal_id
+SELECT record_id as signal_id
 FROM retention_policy_violations
 WHERE table_name = 'signals';
 

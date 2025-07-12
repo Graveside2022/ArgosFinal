@@ -67,6 +67,10 @@
 		devices: KismetDevice[];
 	}
 
+	// Kismet control state
+	let kismetStatus: 'stopped' | 'starting' | 'running' | 'stopping' = 'stopped';
+	let statusCheckInterval: ReturnType<typeof setInterval>;
+
 	// Import Leaflet only on client side
 	// TypeScript interfaces for Leaflet
 	interface LeafletIcon {
@@ -757,7 +761,7 @@
 
 	// Fetch Kismet devices
 	async function fetchKismetDevices() {
-		if (!map) return;
+		if (!map || kismetStatus !== 'running') return;
 
 		try {
 			const response = await fetch('/api/kismet/devices');
@@ -1174,6 +1178,106 @@
 		}
 	}
 
+	// Kismet control functions
+	async function checkKismetStatus() {
+		try {
+			// Use our API to check status
+			const response = await fetch('/api/kismet/control', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ action: 'status' })
+			});
+
+			if (response.ok) {
+				const data = (await response.json()) as { running: boolean };
+				if (data.running && kismetStatus === 'stopped') {
+					kismetStatus = 'running';
+				} else if (!data.running && kismetStatus === 'running') {
+					kismetStatus = 'stopped';
+				}
+			}
+		} catch (error) {
+			console.error('Error checking Kismet status:', error);
+		}
+	}
+
+	async function startKismet() {
+		if (kismetStatus === 'starting' || kismetStatus === 'stopping') return;
+
+		kismetStatus = 'starting';
+
+		try {
+			// Use our own API to control Kismet
+			const response = await fetch('/api/kismet/control', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ action: 'start' })
+			});
+
+			if (response.ok) {
+				// Wait a bit for services to start
+				setTimeout(() => {
+					void checkKismetStatus();
+					kismetStatus = 'running';
+					// Start fetching devices immediately when service starts
+					void fetchKismetDevices();
+				}, 2000);
+			} else {
+				const errorText = await response.text();
+				throw new Error(`Failed to start Kismet: ${errorText}`);
+			}
+		} catch (error: unknown) {
+			console.error('Error starting Kismet:', error);
+			kismetStatus = 'stopped';
+		}
+	}
+
+	async function stopKismet() {
+		if (kismetStatus === 'starting' || kismetStatus === 'stopping') return;
+
+		kismetStatus = 'stopping';
+
+		try {
+			const response = await fetch('/api/kismet/control', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({ action: 'stop' })
+			});
+
+			if (response.ok) {
+				setTimeout(() => {
+					kismetStatus = 'stopped';
+					isSearching = false; // Stop HackRF signal processing
+					clearSignals(); // Clear all devices and signals from the map
+				}, 2000);
+			} else {
+				const data = (await response.json()) as { message?: string };
+				throw new Error(data.message || 'Failed to stop Kismet');
+			}
+		} catch (error: unknown) {
+			console.error('Error stopping Kismet:', error);
+			kismetStatus = 'running';
+		}
+	}
+
+	function _toggleKismet() {
+		if (kismetStatus === 'running') {
+			stopKismet().catch((error) => {
+				console.error('Error stopping Kismet:', error);
+			});
+		} else if (kismetStatus === 'stopped') {
+			startKismet().catch((error) => {
+				console.error('Error starting Kismet:', error);
+			});
+		}
+	}
+
 	onMount(async () => {
 		// Import Leaflet dynamically on client side
 		const leafletModule = await import('leaflet');
@@ -1189,9 +1293,31 @@
 		// Start update interval
 		updateInterval = setInterval(processSignals, UPDATE_RATE);
 
-		// Start fetching Kismet devices every 10 seconds
-		void fetchKismetDevices();
+		// Set up Kismet device fetching interval (will only fetch when running)
 		kismetInterval = setInterval(() => void fetchKismetDevices(), 10000);
+
+		// Check initial Kismet status immediately and more frequently at start
+		checkKismetStatus().catch((error) => {
+			console.error('Initial Kismet status check failed:', error);
+		});
+
+		// Set up more frequent initial status checks, then slower periodic checks
+		let initialCheckCount = 0;
+		const initialCheckInterval = setInterval(() => {
+			checkKismetStatus().catch((error) => {
+				console.error('Initial Kismet status check failed:', error);
+			});
+			initialCheckCount++;
+			if (initialCheckCount >= 3) {
+				clearInterval(initialCheckInterval);
+				// Set up slower periodic status checks
+				statusCheckInterval = setInterval(() => {
+					checkKismetStatus().catch((error) => {
+						console.error('Periodic Kismet status check failed:', error);
+					});
+				}, 5000);
+			}
+		}, 1000);
 	});
 
 	onDestroy(() => {
@@ -1210,6 +1336,10 @@
 		if (kismetInterval) {
 			clearInterval(kismetInterval);
 			kismetInterval = null;
+		}
+
+		if (statusCheckInterval) {
+			clearInterval(statusCheckInterval);
 		}
 
 		if (map) {
@@ -1234,41 +1364,6 @@
 					/>
 				</svg>
 				Back to Console
-			</button>
-			<div class="kismet-whitelist">
-				<label class="mac-label">MAC Whitelist</label>
-				<input
-					type="text"
-					bind:value={kismetWhitelistMAC}
-					placeholder="e.g. FF:FF:FF:FF:FF:FF"
-					class="mac-input"
-					on:keydown={(e) => e.key === 'Enter' && addToWhitelist()}
-				/>
-			</div>
-			<div class="frequency-inputs">
-				{#each searchFrequencies as _freq, idx}
-					<input
-						type="number"
-						bind:value={searchFrequencies[idx]}
-						placeholder="Freq {idx + 1}"
-						on:keydown={(e) => e.key === 'Enter' && handleSearch()}
-						class="frequency-input-small"
-					/>
-				{/each}
-			</div>
-			<button
-				on:click={handleSearch}
-				class="search-button"
-				disabled={!searchFrequencies.some((f) => f)}
-			>
-				Search
-			</button>
-			<button
-				on:click={clearSignals}
-				class="clear-button"
-				disabled={signalCount === 0 && kismetDeviceCount === 0}
-			>
-				Clear
 			</button>
 		</div>
 		<div class="status">
@@ -1351,6 +1446,43 @@
 				></path>
 			</svg>
 			<span class="kismet-title">KISMET</span>
+		</div>
+
+		<div class="footer-section kismet-controls">
+			<button
+				on:click={startKismet}
+				disabled={kismetStatus === 'starting' || kismetStatus === 'running'}
+				class="start-kismet-button-footer"
+			>
+				Start
+			</button>
+			<button
+				on:click={stopKismet}
+				disabled={kismetStatus === 'stopping' || kismetStatus === 'stopped'}
+				class="clear-button-footer"
+			>
+				Stop
+			</button>
+		</div>
+
+		<div class="footer-divider"></div>
+
+		<div class="footer-section kismet-whitelist-footer">
+			<span class="footer-label">MAC Whitelist</span>
+			<input
+				type="text"
+				bind:value={kismetWhitelistMAC}
+				placeholder="FF:FF:FF:FF:FF:FF"
+				class="mac-input-footer"
+				on:keydown={(e) => e.key === 'Enter' && addToWhitelist()}
+			/>
+		</div>
+
+		<div class="footer-divider"></div>
+
+		<div class="footer-section">
+			<span class="footer-label">Total Devices Whitelisted:</span>
+			<span class="device-count">{whitelistedDeviceCount}</span>
 		</div>
 
 		{#if kismetDeviceCount > 0}
@@ -1482,18 +1614,9 @@
 				{/if}
 			</div>
 
-			<div class="footer-divider"></div>
-
 			<div class="footer-section">
 				<span class="footer-label">Total Devices:</span>
 				<span class="device-count">{kismetDeviceCount}</span>
-			</div>
-
-			<div class="footer-divider"></div>
-
-			<div class="footer-section">
-				<span class="footer-label">Total Devices Whitelisted:</span>
-				<span class="device-count">{whitelistedDeviceCount}</span>
 			</div>
 		{:else}
 			<div class="footer-section">
@@ -1585,6 +1708,37 @@
 						>{signalCount}</span
 					>
 				</div>
+			</div>
+
+			<div class="footer-divider"></div>
+
+			<!-- Frequency Controls Section -->
+			<div class="footer-section frequency-controls-section">
+				<div class="frequency-inputs-footer">
+					{#each searchFrequencies as _freq, idx}
+						<input
+							type="number"
+							bind:value={searchFrequencies[idx]}
+							placeholder="Freq {idx + 1}"
+							on:keydown={(e) => e.key === 'Enter' && handleSearch()}
+							class="frequency-input-footer"
+						/>
+					{/each}
+				</div>
+				<button
+					on:click={handleSearch}
+					class="search-button-footer"
+					disabled={!searchFrequencies.some((f) => f)}
+				>
+					Search
+				</button>
+				<button
+					on:click={clearSignals}
+					class="clear-button-footer"
+					disabled={signalCount === 0 && kismetDeviceCount === 0}
+				>
+					Clear
+				</button>
 			</div>
 		{/if}
 
@@ -1700,24 +1854,109 @@
 		color: #666;
 	}
 
-	.kismet-whitelist {
+	/* Footer Frequency Controls */
+	.frequency-controls-section {
 		display: flex;
-		flex-direction: row;
 		align-items: center;
-		gap: 0.5rem;
+		gap: 0.75rem;
+		flex-wrap: wrap;
 	}
 
-	.mac-label {
-		font-size: 12px;
-		color: #000000;
-		background: #ffffff;
-		padding: 0.5rem 0.75rem;
-		border-radius: 4px;
-		font-weight: 500;
-		letter-spacing: 0.05em;
-		height: 36px;
+	.frequency-inputs-footer {
 		display: flex;
-		align-items: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	.frequency-input-footer {
+		width: 80px;
+		padding: 0.25rem 0.375rem;
+		background: #1a1a1a;
+		border: 1px solid #444;
+		border-radius: 4px;
+		color: #ffffff;
+		font-size: 11px;
+		height: 28px;
+		text-align: center;
+	}
+
+	.frequency-input-footer:focus {
+		outline: none;
+		border-color: #0088ff;
+	}
+
+	.frequency-input-footer::placeholder {
+		color: #666;
+		font-size: 11px;
+	}
+
+	.search-button-footer,
+	.clear-button-footer {
+		padding: 0.25rem 0.75rem;
+		border: none;
+		border-radius: 4px;
+		font-size: 11px;
+		cursor: pointer;
+		transition: background-color 0.2s;
+		white-space: nowrap;
+		height: 28px;
+	}
+
+	.search-button-footer {
+		background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
+		color: white !important;
+		box-shadow: none !important;
+	}
+
+	.search-button-footer:hover:not(:disabled) {
+		background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+		box-shadow: none !important;
+		transform: translateY(-1px);
+	}
+
+	.search-button-footer:disabled {
+		background: #444;
+		cursor: not-allowed;
+	}
+
+	.clear-button-footer {
+		background: #ff4444;
+		color: white;
+	}
+
+	.clear-button-footer:hover:not(:disabled) {
+		background: #ff6666;
+	}
+
+	.clear-button-footer:disabled {
+		background: #333;
+		color: #666;
+		cursor: not-allowed;
+	}
+
+	.start-kismet-button-footer {
+		padding: 0.25rem 0.75rem;
+		border: none;
+		border-radius: 4px;
+		font-size: 11px;
+		cursor: pointer;
+		transition: all 0.2s;
+		white-space: nowrap;
+		height: 28px;
+		background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+		color: white !important;
+		box-shadow: none !important;
+	}
+
+	.start-kismet-button-footer:hover:not(:disabled) {
+		background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+		box-shadow: none !important;
+		transform: translateY(-1px);
+	}
+
+	.start-kismet-button-footer:disabled {
+		background: #444;
+		cursor: not-allowed;
 	}
 
 	.mac-input {
@@ -1738,6 +1977,35 @@
 	.mac-input::placeholder {
 		color: #666;
 		font-size: 12px;
+	}
+
+	/* Footer MAC input styles */
+	.kismet-whitelist-footer {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.mac-input-footer {
+		width: 140px;
+		padding: 0.25rem 0.375rem;
+		background: #1a1a1a;
+		border: 1px solid #444;
+		border-radius: 3px;
+		color: #ffffff;
+		font-size: 11px;
+		height: 28px;
+		text-align: center;
+	}
+
+	.mac-input-footer:focus {
+		outline: none;
+		border-color: #00d2ff;
+	}
+
+	.mac-input-footer::placeholder {
+		color: #666;
+		font-size: 11px;
 	}
 
 	.back-console-button {
@@ -1884,30 +2152,80 @@
 	.signal-info {
 		background: #2a2a2a;
 		border-top: 1px solid #444;
-		padding: 0.75rem 1rem;
+		padding: 0.5rem 1rem;
 		display: flex;
 		align-items: center;
-		gap: 2rem;
-		height: 70px; /* Reduced from 80px */
-		font-size: 13px;
+		gap: 1rem;
+		height: 55px;
+		font-size: 12px;
+		line-height: 1.2;
 	}
 
 	/* Data Footer */
 	.data-footer {
 		background: #2a2a2a;
 		border-top: 1px solid #444;
-		padding: 0.75rem 1rem;
+		padding: 0.5rem 1rem;
 		display: flex;
 		align-items: center;
-		gap: 1.5rem;
-		font-size: 13px;
+		gap: 1rem;
+		font-size: 12px;
 		color: #ccc;
-		height: 70px; /* Reduced from 80px */
+		height: 55px;
+		line-height: 1.2;
 	}
 
 	.kismet-label {
 		padding-right: 2rem;
 		border-right: 1px solid #444;
+	}
+
+	.kismet-controls {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.kismet-control-btn {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+		padding: 0.25rem 0.75rem;
+		font-size: 11px;
+		border: none;
+		border-radius: 4px;
+		cursor: pointer;
+		transition: all 0.2s;
+		height: 28px;
+		white-space: nowrap;
+	}
+
+	.kismet-control-btn.btn-start {
+		background: #0088ff;
+		color: white;
+	}
+
+	.kismet-control-btn.btn-start:hover {
+		background: #0066cc;
+	}
+
+	.kismet-control-btn.btn-stop {
+		background: #ff4444;
+		color: white;
+	}
+
+	.kismet-control-btn.btn-stop:hover {
+		background: #ff6666;
+	}
+
+	.kismet-control-btn.btn-disabled {
+		background: #6b7280;
+		color: #9ca3af;
+		cursor: not-allowed;
+	}
+
+	.kismet-control-btn svg {
+		flex-shrink: 0;
 	}
 
 	.kismet-title {
@@ -1966,12 +2284,13 @@
 		background: #333;
 		border: 1px solid #555;
 		color: #ccc;
-		padding: 0.35rem 0.75rem;
+		padding: 0.25rem 0.5rem;
 		border-radius: 4px;
-		font-size: 12px;
+		font-size: 11px;
 		cursor: pointer;
 		transition: all 0.2s;
 		white-space: nowrap;
+		height: 28px;
 	}
 
 	.footer-button:hover {
@@ -1985,15 +2304,16 @@
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		gap: 0.5rem;
-		padding: 0.35rem 0.75rem;
-		border-radius: 0.5rem;
+		gap: 0.375rem;
+		padding: 0.25rem 0.5rem;
+		border-radius: 0.375rem;
 		font-weight: 500;
-		font-size: 12px;
+		font-size: 11px;
 		transition-property: all;
 		transition-duration: 200ms;
 		border: none;
 		cursor: pointer;
+		height: 28px;
 	}
 
 	.saasfly-btn:disabled {
@@ -2003,8 +2323,8 @@
 	}
 
 	.saasfly-btn svg {
-		width: 14px;
-		height: 14px;
+		width: 12px;
+		height: 12px;
 	}
 
 	/* Load button - Purple gradient */
@@ -2052,13 +2372,14 @@
 	.footer-section {
 		display: flex;
 		align-items: center;
-		gap: 1rem;
+		gap: 0.75rem;
 	}
 
 	.footer-label {
 		color: #888;
 		font-weight: 500;
-		margin-right: 0.5rem;
+		margin-right: 0.375rem;
+		font-size: 11px;
 	}
 
 	.signal-stat {
@@ -2083,7 +2404,7 @@
 
 	.footer-divider {
 		width: 1px;
-		height: 20px;
+		height: 16px;
 		background: #444;
 	}
 
@@ -2264,26 +2585,16 @@
 			padding: 6px 12px;
 		}
 
-		/* MAC whitelist - full width */
-		.kismet-whitelist {
-			width: 100%;
-			flex-direction: row;
-			gap: 8px;
+		/* Footer MAC input - portrait styles */
+		.kismet-whitelist-footer {
+			gap: 6px;
 		}
 
-		.mac-label {
+		.mac-input-footer {
+			width: 110px !important;
 			font-size: 11px;
-			padding: 6px 10px;
-			height: 32px;
-			white-space: nowrap;
-		}
-
-		.mac-input {
-			flex: 1;
-			width: auto !important;
-			min-width: 0;
-			font-size: 13px;
-			padding: 6px 10px;
+			padding: 4px 6px;
+			height: 26px;
 		}
 
 		/* Frequency inputs - horizontal scroll if needed */
@@ -2378,13 +2689,13 @@
 		/* Reduce footer heights for more map space on portrait */
 		.signal-info {
 			height: 40px !important;
-			padding: 4px 8px !important;
+			padding: 8px !important;
 			font-size: 11px;
 		}
 
 		.data-footer {
 			height: 40px !important;
-			padding: 4px 8px !important;
+			padding: 8px !important;
 		}
 
 		/* HackRF footer specific adjustments for 40px height in portrait */
@@ -2421,7 +2732,7 @@
 			flex-shrink: 0 !important;
 		}
 
-		/* Ensure proper vertical centering in 40px container */
+		/* Ensure proper vertical centering in 50px container */
 		.data-footer {
 			display: flex !important;
 			align-items: center !important;
@@ -2445,8 +2756,44 @@
 			height: 16px !important;
 		}
 
+		/* Kismet controls compact styling for portrait */
+		.kismet-control-btn {
+			font-size: 8px !important;
+			padding: 0.25rem 0.5rem !important;
+			gap: 0.125rem !important;
+		}
+
+		.kismet-control-btn svg {
+			width: 10px !important;
+			height: 10px !important;
+		}
+
 		.kismet-title {
 			font-size: 10px !important;
+		}
+
+		/* Footer frequency controls - portrait mobile */
+		.frequency-controls-section {
+			gap: 0.5rem;
+			flex-direction: column;
+			align-items: stretch;
+		}
+
+		.frequency-inputs-footer {
+			gap: 4px;
+			justify-content: center;
+		}
+
+		.frequency-input-footer {
+			width: 70px;
+			font-size: 11px;
+			padding: 6px 4px;
+		}
+
+		.search-button-footer,
+		.clear-button-footer {
+			font-size: 11px;
+			padding: 6px 12px;
 		}
 	}
 
@@ -2485,25 +2832,16 @@
 			height: 12px;
 		}
 
-		/* MAC whitelist - more compact to prevent overlap */
-		.kismet-whitelist {
-			flex-direction: row;
-			align-items: center;
-			gap: 4px;
+		/* Footer MAC input - mobile styles */
+		.kismet-whitelist-footer {
+			gap: 3px;
 		}
 
-		.mac-label {
-			font-size: 9px;
-			padding: 2px 6px;
-			height: 24px;
-			white-space: nowrap;
-		}
-
-		.mac-input {
-			width: 120px !important;
-			font-size: 11px;
-			padding: 2px 6px;
-			height: 24px;
+		.mac-input-footer {
+			width: 100px !important;
+			font-size: 10px;
+			padding: 2px 4px;
+			height: 22px;
 		}
 
 		/* Frequency inputs - more compact */
@@ -2594,7 +2932,6 @@
 		/* Signal info popup - compact */
 		.signal-info {
 			font-size: 9px;
-			padding: 3px 6px;
 		}
 
 		/* Status items - prevent overlap */
@@ -2609,12 +2946,12 @@
 		/* Reduce footer heights for more map space */
 		.signal-info {
 			height: 40px !important;
-			padding: 2px 8px !important;
+			padding: 2px 12px !important;
 		}
 
 		.data-footer {
 			height: 40px !important;
-			padding: 2px 8px !important;
+			padding: 2px 12px !important;
 		}
 
 		/* HackRF footer specific adjustments for 40px height */
@@ -2651,7 +2988,7 @@
 			flex-shrink: 0 !important;
 		}
 
-		/* Ensure proper vertical centering in 40px container */
+		/* Ensure proper vertical centering in 50px container */
 		.data-footer {
 			display: flex !important;
 			align-items: center !important;
@@ -2674,6 +3011,18 @@
 		.kismet-label svg {
 			width: 14px !important;
 			height: 14px !important;
+		}
+
+		/* Kismet controls compact styling for landscape */
+		.kismet-control-btn {
+			font-size: 7px !important;
+			padding: 0.1875rem 0.375rem !important;
+			gap: 0.1rem !important;
+		}
+
+		.kismet-control-btn svg {
+			width: 8px !important;
+			height: 8px !important;
 		}
 
 		.kismet-title {
@@ -2729,6 +3078,29 @@
 		/* Reduce gap between footer sections */
 		.signal-info {
 			gap: 8px !important;
+		}
+
+		/* Footer frequency controls - landscape mobile */
+		.frequency-controls-section {
+			gap: 0.3rem;
+			flex-direction: row;
+			flex-wrap: nowrap;
+		}
+
+		.frequency-inputs-footer {
+			gap: 2px;
+		}
+
+		.frequency-input-footer {
+			width: 55px;
+			font-size: 10px;
+			padding: 4px 2px;
+		}
+
+		.search-button-footer,
+		.clear-button-footer {
+			font-size: 10px;
+			padding: 4px 8px;
 		}
 	}
 
@@ -2808,7 +3180,7 @@
 
 		/* Signal info */
 		.signal-info {
-			padding: 0.5rem 0.75rem;
+			padding: 0.75rem;
 			font-size: 12px;
 		}
 
@@ -2901,6 +3273,29 @@
 		/* Device count display */
 		.device-count {
 			font-size: 0.9em;
+		}
+
+		/* Footer frequency controls - tablet/desktop */
+		.frequency-controls-section {
+			gap: 0.6rem;
+			flex-direction: row;
+			flex-wrap: wrap;
+		}
+
+		.frequency-inputs-footer {
+			gap: 6px;
+		}
+
+		.frequency-input-footer {
+			width: 75px;
+			font-size: 12px;
+			padding: 6px 8px;
+		}
+
+		.search-button-footer,
+		.clear-button-footer {
+			font-size: 12px;
+			padding: 6px 12px;
 		}
 	}
 </style>

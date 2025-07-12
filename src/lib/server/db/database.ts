@@ -20,10 +20,11 @@ export interface DbSignal {
 	timestamp: number;
 	latitude: number;
 	longitude: number;
+	altitude?: number;
 	power: number;
 	frequency: number;
-	bandwidth?: number;
-	modulation?: string;
+	bandwidth?: number | null;
+	modulation?: string | null;
 	source: string;
 	metadata?: string;
 }
@@ -114,7 +115,7 @@ class RFDatabase {
 		// Prepare frequently used statements
 		this.prepareStatements();
 
-		// Initialize and start cleanup service
+		// Initialize cleanup service (defer starting until after migrations)
 		this.initializeCleanupService();
 	}
 
@@ -143,6 +144,7 @@ class RFDatabase {
         timestamp INTEGER NOT NULL,
         latitude REAL NOT NULL,
         longitude REAL NOT NULL,
+        altitude REAL DEFAULT 0,
         power REAL NOT NULL,
         frequency REAL NOT NULL,
         bandwidth REAL,
@@ -154,6 +156,11 @@ class RFDatabase {
       
       CREATE INDEX IF NOT EXISTS idx_signals_timestamp ON signals(timestamp);
       CREATE INDEX IF NOT EXISTS idx_signals_location ON signals(latitude, longitude);
+      CREATE INDEX IF NOT EXISTS idx_signals_frequency ON signals(frequency);
+      CREATE INDEX IF NOT EXISTS idx_signals_power ON signals(power);
+      CREATE INDEX IF NOT EXISTS idx_signals_altitude ON signals(altitude);
+      CREATE INDEX IF NOT EXISTS idx_signals_device ON signals(device_id);
+      CREATE INDEX IF NOT EXISTS idx_devices_last_seen ON devices(last_seen);
       CREATE INDEX IF NOT EXISTS idx_signals_spatial_grid ON signals(
         CAST(latitude * 10000 AS INTEGER), 
         CAST(longitude * 10000 AS INTEGER)
@@ -167,10 +174,10 @@ class RFDatabase {
 			'insertSignal',
 			this.db.prepare(`
       INSERT INTO signals (
-        signal_id, device_id, timestamp, latitude, longitude,
+        signal_id, device_id, timestamp, latitude, longitude, altitude,
         power, frequency, bandwidth, modulation, source, metadata
       ) VALUES (
-        @signal_id, @device_id, @timestamp, @latitude, @longitude,
+        @signal_id, @device_id, @timestamp, @latitude, @longitude, @altitude,
         @power, @frequency, @bandwidth, @modulation, @source, @metadata
       )
     `)
@@ -229,8 +236,11 @@ class RFDatabase {
 			timestamp: signal.timestamp,
 			latitude: signal.lat,
 			longitude: signal.lon,
+			altitude: signal.altitude || 0,
 			power: signal.power,
 			frequency: signal.frequency,
+			bandwidth: (signal as any).bandwidth || null,
+			modulation: (signal as any).modulation || null,
 			source: signal.source,
 			metadata: signal.metadata ? JSON.stringify(signal.metadata) : undefined
 		};
@@ -290,6 +300,7 @@ class RFDatabase {
 			timestamp: signal.timestamp,
 			latitude: signal.lat,
 			longitude: signal.lon,
+			altitude: signal.altitude || 0,
 			power: signal.power,
 			frequency: signal.frequency,
 			bandwidth:
@@ -297,13 +308,13 @@ class RFDatabase {
 				typeof signal.metadata === 'object' &&
 				'bandwidth' in signal.metadata
 					? (signal.metadata.bandwidth as number)
-					: undefined,
+					: null,
 			modulation:
 				signal.metadata &&
 				typeof signal.metadata === 'object' &&
 				'modulation' in signal.metadata
 					? (signal.metadata.modulation as string)
-					: undefined,
+					: null,
 			source: signal.source,
 			metadata: signal.metadata ? JSON.stringify(signal.metadata) : undefined
 		}));
@@ -653,6 +664,9 @@ class RFDatabase {
 				batchSize: 500, // Smaller batches for Pi
 				maxRuntime: 20000 // 20 second max runtime
 			});
+
+			// Initialize the cleanup service (this will run migrations and prepare statements)
+			this.cleanupService.initialize();
 
 			// Start automatic cleanup
 			this.cleanupService.start();

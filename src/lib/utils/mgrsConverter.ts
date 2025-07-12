@@ -1,5 +1,5 @@
 // MGRS (Military Grid Reference System) converter
-// Converts lat/lon to 8-digit MGRS format (100m precision)
+// Converts lat/lon to 10-digit MGRS format (10m precision)
 
 // Manual MGRS conversion implementation since package install is having issues
 // This provides the core functionality needed for the tactical map
@@ -18,8 +18,8 @@ interface _MGRSComponents {
 }
 
 /**
- * Convert latitude/longitude to 8-digit MGRS
- * Format: 31U FT 1234 5678 (100m precision)
+ * Convert latitude/longitude to 10-digit MGRS
+ * Format: 31U FT 12345 56789 (10m precision)
  */
 export function latLonToMGRS(lat: number, lon: number): string {
 	try {
@@ -35,15 +35,15 @@ export function latLonToMGRS(lat: number, lon: number): string {
 		// Get 100km square identifier
 		const squares = get100kmSquare(zone, utm.easting, utm.northing, lat);
 
-		// Format easting and northing to 4 digits each (100m precision)
-		const eastingStr = Math.floor((utm.easting % 100000) / 100)
+		// Format easting and northing to 5 digits each (10m precision)
+		const eastingStr = Math.floor((utm.easting % 100000) / 10)
 			.toString()
-			.padStart(4, '0');
-		const northingStr = Math.floor((utm.northing % 100000) / 100)
+			.padStart(5, '0');
+		const northingStr = Math.floor((utm.northing % 100000) / 10)
 			.toString()
-			.padStart(4, '0');
+			.padStart(5, '0');
 
-		// Format: 31U FT 1234 5678
+		// Format: 31U FT 12345 56789
 		return `${zone}${band} ${squares} ${eastingStr} ${northingStr}`;
 	} catch (error) {
 		logError('Error converting to MGRS', { error });
@@ -156,8 +156,8 @@ function get100kmSquare(zone: number, easting: number, northing: number, lat: nu
  * Format MGRS for display with proper spacing
  */
 export function formatMGRS(mgrs: string): string {
-	// Ensure proper spacing: 31U FT 1234 5678
-	return mgrs.replace(/(\d+[A-Z])\s*([A-Z]{2})\s*(\d{4})\s*(\d{4})/, '$1 $2 $3 $4');
+	// Ensure proper spacing: 31U FT 12345 56789
+	return mgrs.replace(/(\d+[A-Z])\s*([A-Z]{2})\s*(\d{5})\s*(\d{5})/, '$1 $2 $3 $4');
 }
 
 /**

@@ -304,3 +304,4 @@ hackrfbackup.svelte
 !orchestrator/knowledge/knowledge.db
 signals.db
 knowledge_base.db
+docker-images/

@@ -239,8 +239,8 @@ class RFDatabase {
 			altitude: signal.altitude || 0,
 			power: signal.power,
 			frequency: signal.frequency,
-			bandwidth: (signal as any).bandwidth || null,
-			modulation: (signal as any).modulation || null,
+			bandwidth: 'bandwidth' in signal ? signal.bandwidth : null,
+			modulation: 'modulation' in signal ? signal.modulation : null,
 			source: signal.source,
 			metadata: signal.metadata ? JSON.stringify(signal.metadata) : undefined
 		};

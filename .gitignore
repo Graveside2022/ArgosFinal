@@ -305,3 +305,35 @@ hackrfbackup.svelte
 signals.db
 knowledge_base.db
 docker-images/
+
+# AI Development Tools
+.bmad-*/
+.gemini/
+.agent/
+
+# Enhanced Environment Security
+.envrc
+
+# Archive Security
+*.tar.gz
+*.tar.bz2
+
+# Vite Build Artifacts
+*.timestamp-*.mjs
+
+# Development Variations
+*.working
+*.broken
+
+# Project-Specific Backups
+hackrfbackup.*
+
+# Visual Testing
+tests/visual/screenshots/
+tests/visual/diffs/
+tests/visual/baselines/
+tests/reports/
+browser-test.png
+
+# Database Backups
+*.db.backup-*

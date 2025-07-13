@@ -348,3 +348,8 @@ browser-test.png
 
 # Database Backups
 *.db.backup-*
+
+# Additional documentation files to ignore
+CODE_OF_CONDUCT.md
+DEFENSE_CONTRACTOR_UI_RESEARCH.md
+SECURITY.md

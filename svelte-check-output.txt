@@ -1,0 +1,1496 @@
+
+> argos-final@0.0.1 check
+> svelte-kit sync && svelte-check --tsconfig ./tsconfig.json
+
+
+====================================
+Loading svelte-check in workspace: /home/pi/projects/ArgosFinal
+Getting Svelte diagnostics...
+
+NODE_ENV=production is not supported in the .env file. Only NODE_ENV=development is supported to create a development build of your project. If you need to set process.env.NODE_ENV, you can set it in the Vite config instead.
+/home/pi/projects/ArgosFinal/src/lib/components/drone/MissionControl.svelte:490:5
+Warn: Unknown property: 'space-y' (css)
+  .active-mission {
+    space-y: 12px;
+  }
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/hackrf/ConnectionStatus.svelte:38:5
+Warn: Buttons and links should either contain text or have an `aria-label` or `aria-labelledby` attribute
+https://svelte.dev/e/a11y_consider_explicit_label (svelte)
+			{#if !$connectionStatus.connected && !$connectionStatus.connecting}
+				<button 
+					on:click={reconnect}
+					class="px-4 py-2 glass-button rounded-lg hover:bg-bg-muted/40 transition-all duration-200"
+				>
+					<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+						<path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/>
+					</svg>
+				</button>
+			{/if}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/hackrf/FrequencyConfig.svelte:108:5
+Warn: Buttons and links should either contain text or have an `aria-label` or `aria-labelledby` attribute
+https://svelte.dev/e/a11y_consider_explicit_label (svelte)
+				</div>
+				<button 
+					on:click={() => removeFrequencyRange(range.id)}
+					class="ml-4 p-2 glass-button-danger rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+				>
+					<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+						<path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+					</svg>
+				</button>
+			</div>
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/hackrf/HackRFHeader.svelte:69:6
+Warn: Buttons and links should either contain text or have an `aria-label` or `aria-labelledby` attribute
+https://svelte.dev/e/a11y_consider_explicit_label (svelte)
+					<!-- Mobile Menu Button -->
+					<button on:click={toggleMobileMenu} class="lg:hidden p-2 glass-button rounded-lg">
+						<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+							<path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/>
+						</svg>
+					</button>
+				</div>
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/hackrf/SpectrumAnalysis.svelte:135:26
+Error: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'. (ts)
+				const firstKey = gradientCache.keys().next().value;
+				gradientCache.delete(firstKey);
+			}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/hackrf/SweepControl.svelte:147:4
+Warn: Buttons and links should either contain text or have an `aria-label` or `aria-labelledby` attribute
+https://svelte.dev/e/a11y_consider_explicit_label (svelte)
+			</button>
+			<button 
+				on:click={emergencyStop}
+				class="px-6 py-3 bg-red-500/20 text-red-400 border border-red-500/40 rounded-lg hover:bg-red-500/30 hover:shadow-red-glow transition-all duration-200 font-semibold"
+			>
+				<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+					<path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a1 1 0 00-1 1v3a1 1 0 102 0v-3a1 1 0 00-1-1z" clip-rule="evenodd"/>
+				</svg>
+			</button>
+		{/if}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/hackrf/TimeFilterDemo.svelte:148:5
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+			<div>
+				<label class="text-xs text-text-muted">Frequency Range (MHz)</label>
+				<div class="flex items-center gap-2 mt-1">
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/hackrf/TimeFilterDemo.svelte:165:5
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+			<div>
+				<label class="text-xs text-text-muted">Power Range (dBm)</label>
+				<div class="flex items-center gap-2 mt-1">
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/hackrf/TimeWindowControl.svelte:138:3
+Warn: Buttons and links should either contain text or have an `aria-label` or `aria-labelledby` attribute
+https://svelte.dev/e/a11y_consider_explicit_label (svelte)
+		</h3>
+		<button
+			on:click={() => (showAdvanced = !showAdvanced)}
+			class="text-text-muted hover:text-text-primary transition-colors"
+		>
+			<svg
+				class="w-5 h-5 transform transition-transform {showAdvanced ? 'rotate-180' : ''}"
+				fill="currentColor"
+				viewBox="0 0 20 20"
+			>
+				<path
+					fill-rule="evenodd"
+					d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+					clip-rule="evenodd"
+				/>
+			</svg>
+		</button>
+	</div>
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/hackrf/TimedSignalDisplay.svelte:117:7
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<div ...></div>` rather than `<div ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+					{#if signal.isExpiring}
+						<div 
+							class="absolute inset-0 rounded-lg pointer-events-none"
+							style="
+								background: linear-gradient(90deg, 
+									transparent 0%, 
+									rgba(239, 68, 68, {(1 - signal.opacity) * 0.1}) 100%
+								);
+							"
+						/>
+					{/if}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/hackrf/TimedSignalDisplay.svelte:180:7
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<div ...></div>` rather than `<div ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+					<div class="mt-2 h-1 bg-bg-secondary rounded-full overflow-hidden">
+						<div 
+							class="h-full transition-all duration-500"
+							style="
+								width: {(signal.age / signal.timeToLive) * 100}%;
+								background-color: {getAgeColor((signal.age / signal.timeToLive) * 100)};
+							"
+						/>
+					</div>
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/kismet/DeviceList.svelte:82:9
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<div ...></div>` rather than `<div ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+							{#each Array(4) as _, i}
+								<div 
+									class="signal-bar" 
+									class:active={i < getSignalStrength(device.signal.last_signal || -100).bars}
+								/>
+							{/each}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/MapControls.svelte:135:5
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+			<div class="mb-3">
+				<label class="block text-sm mb-1">Min Signal Strength</label>
+				<div class="flex items-center space-x-2">
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/MapControls.svelte:152:5
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+			<div>
+				<label class="block text-sm mb-1">Max Age</label>
+				<div class="flex items-center space-x-2">
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalStrengthMeter.svelte:42:9
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<div ...></div>` rather than `<div ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+      <div class="relative w-full bg-gray-700 rounded-full h-2">
+        <div 
+          class="absolute top-0 left-0 h-full rounded-full transition-all duration-300 {strengthColor}"
+          style="width: {strengthPercent}%"
+        />
+      </div>
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalStrengthMeter.svelte:58:9
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<div ...></div>` rather than `<div ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+      {#each Array(5) as _, i}
+        <div 
+          class="w-1 h-3 rounded-sm transition-all duration-300"
+          class:bg-gray-700={i >= Math.ceil(strengthPercent / 20)}
+          class:{strengthColor}={i < Math.ceil(strengthPercent / 20)}
+        />
+      {/each}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalDetailPanel.svelte:39:5
+Warn: Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events (svelte)
+       tabindex="0">
+    <div class="bg-gray-900 rounded-lg shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden"
+         on:click|stopPropagation>
+      <!-- Header -->
+      <div class="bg-gray-800 px-6 py-4 border-b border-gray-700">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-bold text-white">Cluster Details</h2>
+            <p class="text-sm text-gray-400 mt-1">
+              {cluster.stats.count} signals at {cluster.lat.toFixed(6)}°, {cluster.lon.toFixed(6)}°
+            </p>
+          </div>
+          <button
+            on:click={close}
+            class="text-gray-400 hover:text-white transition-colors p-2"
+            aria-label="Close">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Content -->
+      <div class="overflow-y-auto max-h-[calc(80vh-100px)] p-6">
+        <!-- Summary Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div class="bg-gray-800 rounded-lg p-4">
+            <div class="text-xs text-gray-400 mb-1">Average Power</div>
+            <SignalStrengthMeter power={cluster.stats.avgPower} compact={false} />
+          </div>
+          <div class="bg-gray-800 rounded-lg p-4">
+            <div class="text-xs text-gray-400 mb-1">Power Range</div>
+            <div class="text-white">
+              {cluster.stats.minPower.toFixed(0)} to {cluster.stats.maxPower.toFixed(0)} dBm
+            </div>
+          </div>
+          <div class="bg-gray-800 rounded-lg p-4">
+            <div class="text-xs text-gray-400 mb-1">Time Span</div>
+            <div class="text-white">
+              {new Date(cluster.stats.timeRange.start).toLocaleTimeString()} - 
+              {new Date(cluster.stats.timeRange.end).toLocaleTimeString()}
+            </div>
+          </div>
+        </div>
+        
+        <!-- Signals by Type -->
+        <div class="space-y-4">
+          {#each Object.entries(signalsByType) as [type, signals]}
+            <div class="bg-gray-800 rounded-lg p-4">
+              <div class="flex items-center gap-2 mb-3">
+                <SignalTypeIndicator signalType={type} size="medium" />
+                <h3 class="text-lg font-semibold text-white capitalize">{type}</h3>
+                <span class="text-sm text-gray-400">({signals.length} signals)</span>
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {#each signals as signal}
+                  <button
+                    on:click={() => selectSignal(signal)}
+                    class="bg-gray-700 hover:bg-gray-600 rounded-lg p-3 text-left transition-colors">
+                    <div class="flex items-center justify-between mb-2">
+                      <div class="text-sm text-white">
+                        {(signal.frequency / 1000).toFixed(2)} GHz
+                      </div>
+                      <SignalStrengthMeter power={signal.power} compact={true} showLabel={false} />
+                    </div>
+                    <div class="text-xs text-gray-400">
+                      {new Date(signal.timestamp).toLocaleTimeString()}
+                    </div>
+                  </button>
+                {/each}
+              </div>
+            </div>
+          {/each}
+        </div>
+      </div>
+      
+      <!-- Footer -->
+      <div class="bg-gray-800 px-6 py-3 border-t border-gray-700">
+        <div class="flex justify-end gap-3">
+          <button
+            on:click={close}
+            class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalDetailPanel.svelte:39:5
+Warn: `<div>` with a click handler must have an ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions (svelte)
+       tabindex="0">
+    <div class="bg-gray-900 rounded-lg shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden"
+         on:click|stopPropagation>
+      <!-- Header -->
+      <div class="bg-gray-800 px-6 py-4 border-b border-gray-700">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-xl font-bold text-white">Cluster Details</h2>
+            <p class="text-sm text-gray-400 mt-1">
+              {cluster.stats.count} signals at {cluster.lat.toFixed(6)}°, {cluster.lon.toFixed(6)}°
+            </p>
+          </div>
+          <button
+            on:click={close}
+            class="text-gray-400 hover:text-white transition-colors p-2"
+            aria-label="Close">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Content -->
+      <div class="overflow-y-auto max-h-[calc(80vh-100px)] p-6">
+        <!-- Summary Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div class="bg-gray-800 rounded-lg p-4">
+            <div class="text-xs text-gray-400 mb-1">Average Power</div>
+            <SignalStrengthMeter power={cluster.stats.avgPower} compact={false} />
+          </div>
+          <div class="bg-gray-800 rounded-lg p-4">
+            <div class="text-xs text-gray-400 mb-1">Power Range</div>
+            <div class="text-white">
+              {cluster.stats.minPower.toFixed(0)} to {cluster.stats.maxPower.toFixed(0)} dBm
+            </div>
+          </div>
+          <div class="bg-gray-800 rounded-lg p-4">
+            <div class="text-xs text-gray-400 mb-1">Time Span</div>
+            <div class="text-white">
+              {new Date(cluster.stats.timeRange.start).toLocaleTimeString()} - 
+              {new Date(cluster.stats.timeRange.end).toLocaleTimeString()}
+            </div>
+          </div>
+        </div>
+        
+        <!-- Signals by Type -->
+        <div class="space-y-4">
+          {#each Object.entries(signalsByType) as [type, signals]}
+            <div class="bg-gray-800 rounded-lg p-4">
+              <div class="flex items-center gap-2 mb-3">
+                <SignalTypeIndicator signalType={type} size="medium" />
+                <h3 class="text-lg font-semibold text-white capitalize">{type}</h3>
+                <span class="text-sm text-gray-400">({signals.length} signals)</span>
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {#each signals as signal}
+                  <button
+                    on:click={() => selectSignal(signal)}
+                    class="bg-gray-700 hover:bg-gray-600 rounded-lg p-3 text-left transition-colors">
+                    <div class="flex items-center justify-between mb-2">
+                      <div class="text-sm text-white">
+                        {(signal.frequency / 1000).toFixed(2)} GHz
+                      </div>
+                      <SignalStrengthMeter power={signal.power} compact={true} showLabel={false} />
+                    </div>
+                    <div class="text-xs text-gray-400">
+                      {new Date(signal.timestamp).toLocaleTimeString()}
+                    </div>
+                  </button>
+                {/each}
+              </div>
+            </div>
+          {/each}
+        </div>
+      </div>
+      
+      <!-- Footer -->
+      <div class="bg-gray-800 px-6 py-3 border-t border-gray-700">
+        <div class="flex justify-end gap-3">
+          <button
+            on:click={close}
+            class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:188:5
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+			<div class="preset-section">
+				<label class="section-label">Quick Presets</label>
+				<div class="preset-grid">
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:204:5
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+			<div class="filter-section">
+				<label class="section-label">Signal Strength (dBm)</label>
+				<div class="range-slider">
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:232:5
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+			<div class="filter-section">
+				<label class="section-label">Spatial Aggregation</label>
+				<div class="grid grid-cols-2 gap-2">
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:235:7
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+					<div>
+						<label class="sub-label">Grid Size (m)</label>
+						<select
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:248:7
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+					<div>
+						<label class="sub-label">Max per Cell</label>
+						<input
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:263:5
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+			<div class="filter-section">
+				<label class="section-label">Priority Mode</label>
+				<select
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:336:7
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+					<div class="filter-section">
+						<label class="section-label">Frequency Bands</label>
+						<div class="frequency-toggles">
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:394:7
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+					<div class="filter-section">
+						<label class="section-label">Temporal Settings</label>
+						<div class="grid grid-cols-2 gap-2">
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:397:9
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+							<div>
+								<label class="sub-label">Time Window (s)</label>
+								<input
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:412:9
+Warn: A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control (svelte)
+							<div>
+								<label class="sub-label">Aggregation</label>
+								<select
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:434:3
+Warn: Unknown at rule @apply (css)
+	.signal-filter-controls {
+		@apply bg-gray-900/95 backdrop-blur-sm rounded-lg shadow-lg;
+		@apply transition-all duration-300;
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:435:3
+Warn: Unknown at rule @apply (css)
+		@apply bg-gray-900/95 backdrop-blur-sm rounded-lg shadow-lg;
+		@apply transition-all duration-300;
+		max-width: 320px;
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:440:3
+Warn: Unknown at rule @apply (css)
+	.signal-filter-controls.collapsed {
+		@apply bg-gray-900/90;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:444:3
+Warn: Unknown at rule @apply (css)
+	.controls-header {
+		@apply p-3 flex items-center space-x-3;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:448:3
+Warn: Unknown at rule @apply (css)
+	.toggle-btn {
+		@apply p-1 rounded hover:bg-gray-800 transition-colors;
+		@apply text-gray-400 hover:text-white;
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:449:3
+Warn: Unknown at rule @apply (css)
+		@apply p-1 rounded hover:bg-gray-800 transition-colors;
+		@apply text-gray-400 hover:text-white;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:453:3
+Warn: Unknown at rule @apply (css)
+	.header-info {
+		@apply flex-1;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:457:3
+Warn: Unknown at rule @apply (css)
+	.signal-counts {
+		@apply flex items-center space-x-2 mt-1;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:461:3
+Warn: Unknown at rule @apply (css)
+	.count-badge {
+		@apply px-2 py-0.5 rounded text-xs font-mono;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:465:3
+Warn: Unknown at rule @apply (css)
+	.count-badge.total {
+		@apply bg-gray-700 text-gray-300;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:469:3
+Warn: Unknown at rule @apply (css)
+	.count-badge.filtered {
+		@apply bg-cyan-600/20 text-cyan-400 border border-cyan-600/30;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:473:3
+Warn: Unknown at rule @apply (css)
+	.reduction-badge {
+		@apply px-2 py-0.5 rounded text-xs font-bold;
+		@apply bg-green-600/20 text-green-400 border border-green-600/30;
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:474:3
+Warn: Unknown at rule @apply (css)
+		@apply px-2 py-0.5 rounded text-xs font-bold;
+		@apply bg-green-600/20 text-green-400 border border-green-600/30;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:478:3
+Warn: Unknown at rule @apply (css)
+	.controls-body {
+		@apply px-3 pb-3 space-y-3;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:482:3
+Warn: Unknown at rule @apply (css)
+	.preset-section {
+		@apply space-y-2;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:486:3
+Warn: Unknown at rule @apply (css)
+	.preset-grid {
+		@apply grid grid-cols-2 gap-2;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:490:3
+Warn: Unknown at rule @apply (css)
+	.preset-btn {
+		@apply px-3 py-2 rounded text-xs font-medium;
+		@apply bg-gray-800 text-gray-300 hover:bg-gray-700;
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:491:3
+Warn: Unknown at rule @apply (css)
+		@apply px-3 py-2 rounded text-xs font-medium;
+		@apply bg-gray-800 text-gray-300 hover:bg-gray-700;
+		@apply border border-gray-700 hover:border-gray-600;
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:492:3
+Warn: Unknown at rule @apply (css)
+		@apply bg-gray-800 text-gray-300 hover:bg-gray-700;
+		@apply border border-gray-700 hover:border-gray-600;
+		@apply transition-all duration-200;
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:493:3
+Warn: Unknown at rule @apply (css)
+		@apply border border-gray-700 hover:border-gray-600;
+		@apply transition-all duration-200;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:497:3
+Warn: Unknown at rule @apply (css)
+	.preset-btn.active {
+		@apply bg-cyan-600/20 text-cyan-400 border-cyan-600/50;
+		@apply hover:bg-cyan-600/30 hover:border-cyan-600/70;
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:498:3
+Warn: Unknown at rule @apply (css)
+		@apply bg-cyan-600/20 text-cyan-400 border-cyan-600/50;
+		@apply hover:bg-cyan-600/30 hover:border-cyan-600/70;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:502:3
+Warn: Unknown at rule @apply (css)
+	.filter-section {
+		@apply space-y-2;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:506:3
+Warn: Unknown at rule @apply (css)
+	.section-label {
+		@apply block text-sm font-medium text-gray-300;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:510:3
+Warn: Unknown at rule @apply (css)
+	.sub-label {
+		@apply block text-xs text-gray-400 mb-1;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:514:3
+Warn: Unknown at rule @apply (css)
+	.range-slider {
+		@apply relative h-12;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:518:3
+Warn: Unknown at rule @apply (css)
+	.slider {
+		@apply absolute w-full h-1 bg-gray-700 rounded-lg appearance-none cursor-pointer;
+		top: 50%;
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:524:3
+Warn: Unknown at rule @apply (css)
+	.slider::-webkit-slider-thumb {
+		@apply appearance-none w-4 h-4 bg-cyan-500 rounded-full cursor-pointer;
+		@apply hover:bg-cyan-400 transition-colors;
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:525:3
+Warn: Unknown at rule @apply (css)
+		@apply appearance-none w-4 h-4 bg-cyan-500 rounded-full cursor-pointer;
+		@apply hover:bg-cyan-400 transition-colors;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:529:3
+Warn: Unknown at rule @apply (css)
+	.range-values {
+		@apply absolute bottom-0 left-0 right-0;
+		@apply flex items-center justify-center space-x-2;
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:530:3
+Warn: Unknown at rule @apply (css)
+		@apply absolute bottom-0 left-0 right-0;
+		@apply flex items-center justify-center space-x-2;
+		@apply text-xs text-gray-400;
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:531:3
+Warn: Unknown at rule @apply (css)
+		@apply flex items-center justify-center space-x-2;
+		@apply text-xs text-gray-400;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:535:3
+Warn: Unknown at rule @apply (css)
+	.select-input {
+		@apply w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded;
+		@apply text-sm text-white focus:border-cyan-500 focus:outline-none;
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:536:3
+Warn: Unknown at rule @apply (css)
+		@apply w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded;
+		@apply text-sm text-white focus:border-cyan-500 focus:outline-none;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:540:3
+Warn: Unknown at rule @apply (css)
+	.number-input {
+		@apply w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded;
+		@apply text-sm text-white focus:border-cyan-500 focus:outline-none;
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:541:3
+Warn: Unknown at rule @apply (css)
+		@apply w-full px-2 py-1 bg-gray-800 border border-gray-700 rounded;
+		@apply text-sm text-white focus:border-cyan-500 focus:outline-none;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:545:3
+Warn: Unknown at rule @apply (css)
+	.checkbox {
+		@apply w-4 h-4 text-cyan-600 bg-gray-700 border-gray-600 rounded;
+		@apply focus:ring-cyan-500 focus:ring-offset-0;
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:546:3
+Warn: Unknown at rule @apply (css)
+		@apply w-4 h-4 text-cyan-600 bg-gray-700 border-gray-600 rounded;
+		@apply focus:ring-cyan-500 focus:ring-offset-0;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:550:3
+Warn: Unknown at rule @apply (css)
+	.drone-stats {
+		@apply mt-2 p-2 bg-gray-800/50 rounded border border-gray-700;
+		@apply grid grid-cols-2 gap-2;
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:551:3
+Warn: Unknown at rule @apply (css)
+		@apply mt-2 p-2 bg-gray-800/50 rounded border border-gray-700;
+		@apply grid grid-cols-2 gap-2;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:555:3
+Warn: Unknown at rule @apply (css)
+	.stat-item {
+		@apply flex items-center justify-between;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:559:3
+Warn: Unknown at rule @apply (css)
+	.stat-label {
+		@apply text-xs text-gray-400;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:563:3
+Warn: Unknown at rule @apply (css)
+	.stat-value {
+		@apply text-sm font-bold text-white;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:567:3
+Warn: Unknown at rule @apply (css)
+	.stat-value.alerts {
+		@apply text-orange-400;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:571:3
+Warn: Unknown at rule @apply (css)
+	.advanced-toggle {
+		@apply w-full px-3 py-2 mt-2 flex items-center justify-center;
+		@apply text-sm text-gray-400 hover:text-white;
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:572:3
+Warn: Unknown at rule @apply (css)
+		@apply w-full px-3 py-2 mt-2 flex items-center justify-center;
+		@apply text-sm text-gray-400 hover:text-white;
+		@apply bg-gray-800/50 hover:bg-gray-800 rounded;
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:573:3
+Warn: Unknown at rule @apply (css)
+		@apply text-sm text-gray-400 hover:text-white;
+		@apply bg-gray-800/50 hover:bg-gray-800 rounded;
+		@apply transition-colors duration-200;
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:574:3
+Warn: Unknown at rule @apply (css)
+		@apply bg-gray-800/50 hover:bg-gray-800 rounded;
+		@apply transition-colors duration-200;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:578:3
+Warn: Unknown at rule @apply (css)
+	.advanced-section {
+		@apply mt-3 pt-3 border-t border-gray-800;
+		@apply space-y-3;
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:579:3
+Warn: Unknown at rule @apply (css)
+		@apply mt-3 pt-3 border-t border-gray-800;
+		@apply space-y-3;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:583:3
+Warn: Unknown at rule @apply (css)
+	.frequency-toggles {
+		@apply space-y-3;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:587:3
+Warn: Unknown at rule @apply (css)
+	.freq-group {
+		@apply space-y-1;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:591:3
+Warn: Unknown at rule @apply (css)
+	.freq-group-title {
+		@apply text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:595:3
+Warn: Unknown at rule @apply (css)
+	.freq-toggle {
+		@apply flex items-center space-x-2 cursor-pointer py-1;
+		@apply hover:bg-gray-800/50 rounded px-1;
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:596:3
+Warn: Unknown at rule @apply (css)
+		@apply flex items-center space-x-2 cursor-pointer py-1;
+		@apply hover:bg-gray-800/50 rounded px-1;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:600:3
+Warn: Unknown at rule @apply (css)
+	.freq-label {
+		@apply text-xs text-gray-300;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:604:3
+Warn: Unknown at rule @apply (css)
+	.freq-range {
+		@apply text-gray-500 ml-1;
+	}
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:91:4
+Error: Type '{ droneFrequencies: boolean; minPower: number; priorityMode: string; movingSignalsOnly: boolean; maxSignalsPerArea: number; maxPower?: number | undefined; frequencyBands?: FrequencyBand[] | undefined; ... 5 more ...; altitudeFilter?: { ...; } | undefined; } | { ...; } | { ...; } | { ...; }' is not assignable to type 'FilteringOptions'.
+  Type '{ droneFrequencies: boolean; minPower: number; priorityMode: string; movingSignalsOnly: boolean; maxSignalsPerArea: number; maxPower?: number; frequencyBands?: FrequencyBand[]; ... 5 more ...; altitudeFilter?: { min: number; max: number; }; }' is not assignable to type 'FilteringOptions'.
+    Types of property 'priorityMode' are incompatible.
+      Type 'string' is not assignable to type '"strongest" | "newest" | "persistent" | "anomalous" | undefined'. (ts)
+			const preset = filterPresets[presetKey as keyof typeof filterPresets];
+			filterOptions = { ...filterOptions, ...preset.options };
+			selectedPreset = presetKey;
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/SignalFilterControls.svelte:402:17
+Error: 'filterOptions.timeWindow' is possibly 'undefined'. (ts)
+									max="300"
+									value={filterOptions.timeWindow / 1000}
+									on:change={(e) => {
+
+
+/home/pi/projects/ArgosFinal/src/lib/components/map/TimeFilterControls.svelte:229:5
+Warn: Also define the standard property 'appearance' for compatibility (css)
+  .time-slider {
+    -webkit-appearance: none;
+    width: 100%;
+
+
+/home/pi/projects/ArgosFinal/src/routes/+page.svelte:249:3
+Warn: Unused CSS selector ".mission-dev"
+https://svelte.dev/e/css_unused_selector (svelte)
+  
+  .mission-dev {
+    --mission-color: #a855f7;
+
+
+/home/pi/projects/ArgosFinal/src/routes/+page.svelte:255:3
+Warn: Unused CSS selector ".dev-tools-section"
+https://svelte.dev/e/css_unused_selector (svelte)
+  /* Dev Tools Section */
+  .dev-tools-section {
+    margin-top: 5rem;
+
+
+/home/pi/projects/ArgosFinal/src/routes/+page.svelte:261:3
+Warn: Unused CSS selector ".dev-tools-section .section-title"
+https://svelte.dev/e/css_unused_selector (svelte)
+  
+  .dev-tools-section .section-title {
+    text-align: center;
+
+
+/home/pi/projects/ArgosFinal/src/routes/kismet/+page.svelte:348:7
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<iframe ...></iframe>` rather than `<iframe ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+    {#if iframeUrl}
+      <iframe
+        src={iframeUrl}
+        on:load={handleIframeLoad}
+        on:error={handleIframeError}
+        class="w-full h-full border-0"
+        title="Kismet Interface"
+        style="display: {hasError && kismetStatus === 'stopped' ? 'none' : 'block'}"
+        sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+      />
+    {/if}
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:1819:2
+Warn: Unused CSS selector ".frequency-inputs"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.frequency-inputs {
+		display: flex;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:1824:2
+Warn: Unused CSS selector ".frequency-input"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.frequency-input {
+		flex: 1;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:1834:2
+Warn: Unused CSS selector ".frequency-input:focus"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.frequency-input:focus {
+		outline: none;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:1839:2
+Warn: Unused CSS selector ".frequency-input-small"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.frequency-input-small {
+		width: 100px;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:1849:2
+Warn: Unused CSS selector ".frequency-input-small:focus"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.frequency-input-small:focus {
+		outline: none;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:1854:2
+Warn: Unused CSS selector ".frequency-input-small::placeholder"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.frequency-input-small::placeholder {
+		color: #666;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:1963:2
+Warn: Unused CSS selector ".mac-input"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.mac-input {
+		width: 200px;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:1973:2
+Warn: Unused CSS selector ".mac-input:focus"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.mac-input:focus {
+		outline: none;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:1978:2
+Warn: Unused CSS selector ".mac-input::placeholder"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.mac-input::placeholder {
+		color: #666;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2043:2
+Warn: Unused CSS selector ".search-button"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.search-button,
+	.clear-button {
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2044:2
+Warn: Unused CSS selector ".clear-button"
+https://svelte.dev/e/css_unused_selector (svelte)
+	.search-button,
+	.clear-button {
+		padding: 0.5rem 1.5rem;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2053:2
+Warn: Unused CSS selector ".search-button"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.search-button {
+		background: #0088ff;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2058:2
+Warn: Unused CSS selector ".search-button:hover:not(:disabled)"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.search-button:hover:not(:disabled) {
+		background: #0066cc;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2062:2
+Warn: Unused CSS selector ".search-button:disabled"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.search-button:disabled {
+		background: #444;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2067:2
+Warn: Unused CSS selector ".clear-button"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.clear-button {
+		background: #ff4444 !important;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2072:2
+Warn: Unused CSS selector ".clear-button:hover:not(:disabled)"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.clear-button:hover:not(:disabled) {
+		background: #ff6666 !important;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2076:2
+Warn: Unused CSS selector ".clear-button:disabled"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.clear-button:disabled {
+		background: #333 !important;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2095:2
+Warn: Unused CSS selector ".status-label"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.status-label {
+		color: #888;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2099:2
+Warn: Unused CSS selector ".status-value"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.status-value {
+		font-weight: 500;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2103:2
+Warn: Unused CSS selector ".status-value.connected"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.status-value.connected {
+		color: #00ff00;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2107:2
+Warn: Unused CSS selector ".status-value.disconnected"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.status-value.disconnected {
+		color: #ff4444;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2190:2
+Warn: Unused CSS selector ".kismet-control-btn"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.kismet-control-btn {
+		display: flex;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2204:2
+Warn: Unused CSS selector ".kismet-control-btn.btn-start"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.kismet-control-btn.btn-start {
+		background: #0088ff;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2209:2
+Warn: Unused CSS selector ".kismet-control-btn.btn-start:hover"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.kismet-control-btn.btn-start:hover {
+		background: #0066cc;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2213:2
+Warn: Unused CSS selector ".kismet-control-btn.btn-stop"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.kismet-control-btn.btn-stop {
+		background: #ff4444;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2218:2
+Warn: Unused CSS selector ".kismet-control-btn.btn-stop:hover"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.kismet-control-btn.btn-stop:hover {
+		background: #ff6666;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2222:2
+Warn: Unused CSS selector ".kismet-control-btn.btn-disabled"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.kismet-control-btn.btn-disabled {
+		background: #6b7280;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2228:2
+Warn: Unused CSS selector ".kismet-control-btn svg"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.kismet-control-btn svg {
+		flex-shrink: 0;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2244:2
+Warn: Unused CSS selector ".hackrf-title"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.hackrf-title {
+		font-weight: 600;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2270:2
+Warn: Unused CSS selector ".frequency-count"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.frequency-count {
+		color: #fb923c;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2275:2
+Warn: Unused CSS selector ".offline-status"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.offline-status {
+		color: #ff4444;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2284:2
+Warn: Unused CSS selector ".footer-button"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.footer-button {
+		background: #333;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2297:2
+Warn: Unused CSS selector ".footer-button:hover"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.footer-button:hover {
+		background: #444;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2412:2
+Warn: Unused CSS selector ".info-content"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.info-content {
+		display: flex;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2418:2
+Warn: Unused CSS selector ".info-label"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.info-label {
+		color: #888;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2423:2
+Warn: Unused CSS selector ".info-value"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+	.info-value {
+		font-weight: 500;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2602:3
+Warn: Unused CSS selector ".frequency-inputs"
+https://svelte.dev/e/css_unused_selector (svelte)
+		/* Frequency inputs - horizontal scroll if needed */
+		.frequency-inputs {
+			width: 100%;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2610:3
+Warn: Unused CSS selector ".frequency-input-small"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+		.frequency-input-small {
+			min-width: 80px;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2618:3
+Warn: Unused CSS selector ".search-button"
+https://svelte.dev/e/css_unused_selector (svelte)
+		/* Buttons - side by side */
+		.search-button,
+		.clear-button {
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2619:3
+Warn: Unused CSS selector ".clear-button"
+https://svelte.dev/e/css_unused_selector (svelte)
+		.search-button,
+		.clear-button {
+			flex: 1;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2676:3
+Warn: Unused CSS selector ".footer"
+https://svelte.dev/e/css_unused_selector (svelte)
+		/* Footer - hidden in portrait to save space */
+		.footer {
+			display: none;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2761:3
+Warn: Unused CSS selector ".kismet-control-btn"
+https://svelte.dev/e/css_unused_selector (svelte)
+		/* Kismet controls compact styling for portrait */
+		.kismet-control-btn {
+			font-size: 8px !important;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2767:3
+Warn: Unused CSS selector ".kismet-control-btn svg"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+		.kismet-control-btn svg {
+			width: 10px !important;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2849:3
+Warn: Unused CSS selector ".frequency-inputs"
+https://svelte.dev/e/css_unused_selector (svelte)
+		/* Frequency inputs - more compact */
+		.frequency-inputs {
+			flex-direction: row;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2854:3
+Warn: Unused CSS selector ".frequency-input-small"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+		.frequency-input-small {
+			width: 65px !important;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2862:3
+Warn: Unused CSS selector ".search-button"
+https://svelte.dev/e/css_unused_selector (svelte)
+		/* Buttons - smaller to prevent overlap */
+		.search-button,
+		.clear-button {
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2863:3
+Warn: Unused CSS selector ".clear-button"
+https://svelte.dev/e/css_unused_selector (svelte)
+		.search-button,
+		.clear-button {
+			font-size: 11px;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2915:3
+Warn: Unused CSS selector ".footer"
+https://svelte.dev/e/css_unused_selector (svelte)
+		/* Footer - hidden in landscape */
+		.footer {
+			display: none;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:2943:3
+Warn: Unused CSS selector ".status-value"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+		.status-value {
+			font-size: 9px;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:3018:3
+Warn: Unused CSS selector ".kismet-control-btn"
+https://svelte.dev/e/css_unused_selector (svelte)
+		/* Kismet controls compact styling for landscape */
+		.kismet-control-btn {
+			font-size: 7px !important;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:3024:3
+Warn: Unused CSS selector ".kismet-control-btn svg"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+		.kismet-control-btn svg {
+			width: 8px !important;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:3111:3
+Warn: Unused CSS selector ".header"
+https://svelte.dev/e/css_unused_selector (svelte)
+		/* Header adjustments */
+		.header {
+			padding: 8px;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:3115:3
+Warn: Unused CSS selector "h1"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+		h1 {
+			font-size: 1.2em;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:3160:3
+Warn: Unused CSS selector ".legend"
+https://svelte.dev/e/css_unused_selector (svelte)
+		/* Legend - reposition to avoid overlap */
+		.legend {
+			position: relative !important;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:3189:3
+Warn: Unused CSS selector ".footer"
+https://svelte.dev/e/css_unused_selector (svelte)
+		/* Footer - stack all sections vertically */
+		.footer {
+			grid-template-columns: 1fr !important;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:3207:3
+Warn: Unused CSS selector ".footer-section h3"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+		.footer-section h3 {
+			font-size: 0.9em;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:3212:3
+Warn: Unused CSS selector ".footer-section p"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+		.footer-section p {
+			font-size: 0.85em;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:3218:3
+Warn: Unused CSS selector ".footer-status"
+https://svelte.dev/e/css_unused_selector (svelte)
+		/* Footer status items */
+		.footer-status {
+			flex-direction: column;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:3224:3
+Warn: Unused CSS selector ".footer-status .status-dot"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+		.footer-status .status-dot {
+			margin-right: 6px;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:3229:3
+Warn: Unused CSS selector ".footer-actions"
+https://svelte.dev/e/css_unused_selector (svelte)
+		/* Footer actions */
+		.footer-actions {
+			flex-direction: column;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:3234:3
+Warn: Unused CSS selector ".btn-footer"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+		.btn-footer {
+			width: 100%;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:3241:3
+Warn: Unused CSS selector ".stats-grid"
+https://svelte.dev/e/css_unused_selector (svelte)
+		/* Stats grid */
+		.stats-grid {
+			font-size: 0.85em;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:3247:3
+Warn: Unused CSS selector ".gps-info"
+https://svelte.dev/e/css_unused_selector (svelte)
+		/* GPS info */
+		.gps-info {
+			font-size: 0.85em;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:3253:3
+Warn: Unused CSS selector ".gps-stat"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+		.gps-stat {
+			min-width: 80px;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:3258:3
+Warn: Unused CSS selector ".distribution-grid"
+https://svelte.dev/e/css_unused_selector (svelte)
+		/* Distribution charts */
+		.distribution-grid {
+			gap: 10px;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:3262:3
+Warn: Unused CSS selector ".distribution-chart h4"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+		.distribution-chart h4 {
+			font-size: 0.85em;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:3266:3
+Warn: Unused CSS selector ".chart-bar-label"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+		.chart-bar-label {
+			font-size: 0.7em;
+
+
+/home/pi/projects/ArgosFinal/src/routes/tactical-map-simple/+page.svelte:3270:3
+Warn: Unused CSS selector ".chart-bar-count"
+https://svelte.dev/e/css_unused_selector (svelte)
+
+		.chart-bar-count {
+			font-size: 0.65em;
+
+
+/home/pi/projects/ArgosFinal/src/routes/viewspectrum/+page.svelte:85:13
+Warn: Self-closing HTML tags for non-void elements are ambiguous — use `<iframe ...></iframe>` rather than `<iframe ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag (svelte)
+        {#if iframeUrl}
+            <iframe 
+                src={iframeUrl}
+                class="w-full h-full border-0"
+                title="OpenWebRX Spectrum Viewer"
+                on:load={handleIframeLoad}
+                on:error={handleIframeError}
+                style="display: {hasError ? 'none' : 'block'}"
+                allow="autoplay; microphone"
+            />
+        {/if}
+
+
+====================================
+svelte-check found 3 errors and 158 warnings in 19 files
